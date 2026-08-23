@@ -467,3 +467,53 @@ function isApprovalValidCheck(
   if (currentDraftHash === null) return true; // executor can't verify, let fulfillment check
   return currentDraftHash === approvedDraftHash;
 }
+
+// ── LLM-Enhanced Workflow Execution ──────────────────────────────────────
+//
+// The LLM-enhanced path follows this pattern:
+//
+//   deterministic baseline
+//       +
+//   LLM enhancement
+//       +
+//   deterministic reconciliation
+//
+// If LLM enhancement fails, the system returns the deterministic result.
+// The LLM can NEVER authorize, approve, or trigger consequential actions.
+
+import { reconcileWithLLM } from "./llm-reconciliation";
+import { getLLMAdapter } from "@/platform/llm-adapter";
+import { getAuthorityProvider } from "@/platform/authority-provider";
+
+export async function runProfiledWorkflowWithLLM(
+  input: WorkflowExecutionInput,
+  consequential?: WorkflowConsequentialState | null,
+): Promise<WorkflowExecutionResult & {
+  llmEnhanced: boolean;
+  llmSkippedReason?: string;
+}> {
+  // 1. Run the deterministic workflow first (always)
+  const deterministicResult = runProfiledWorkflow(input, consequential);
+
+  // 2. Attempt LLM enhancement (advisory only)
+  const adapter = getLLMAdapter();
+  const authorityProvider = getAuthorityProvider();
+
+  const reconciliation = await reconcileWithLLM(
+    deterministicResult.analysis,
+    input.text,
+    adapter,
+    authorityProvider,
+    input.workflowId,
+  );
+
+  // 3. Return the result with enhanced analysis
+  // The stages, draft, blocking, etc. are all from the deterministic path.
+  // Only the analysis is enhanced (additively).
+  return {
+    ...deterministicResult,
+    analysis: reconciliation.analysis,
+    llmEnhanced: reconciliation.llmEnhanced,
+    llmSkippedReason: reconciliation.llmSkippedReason,
+  };
+}

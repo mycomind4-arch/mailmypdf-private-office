@@ -54,6 +54,8 @@ export const matterAnalysisSchema = z.object({
           "inferred",
           "verified",
           "ai_suggested",
+          "llm_generated",
+          "externally_sourced",
         ])
         .default("user_provided"),
     }),
