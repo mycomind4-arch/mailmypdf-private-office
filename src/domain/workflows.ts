@@ -1,4 +1,4 @@
-export type WorkflowId = "contractor-dispute" | "property-insurance-claim" | "bank-wire-dispute";
+export type WorkflowId = "contractor-dispute" | "property-insurance-claim" | "bank-wire-dispute" | "trust-beneficiary-notice";
 
 export type WorkflowStep =
   | "intro"
@@ -92,9 +92,18 @@ const definitions: Array<
     id: "bank-wire-dispute",
     title: "Bank & Wire Transfer Dispute",
     description:
-      "Document a bank or wire transfer dispute — unauthorized wires, mistaken transfers, beneficiary errors, bank refusal, delayed investigation, or disputed transactions — with transaction records, chronology, evidence, and professional correspondence.",
+      "Document a bank or wire transfer dispute — unauthorized wires, mistaken transfers, beneficiary errors, bank refusals, delayed investigations, or disputed transactions — with transaction records, chronology, evidence, and professional correspondence.",
     disclaimer:
       "Private Office provides document preparation, evidence organization, and mailing assistance. It is not a law firm, bank, regulator, or law enforcement agency and does not provide legal advice, determine whether a transaction was unauthorized, or guarantee recovery.",
+    lifecycle: "gold",
+  },
+  {
+    id: "trust-beneficiary-notice",
+    title: "Trust Beneficiary Notice",
+    description:
+      "Document a trust beneficiary matter — beneficiary notice, request for trust information, accounting, distribution status, trustee communication, or documentation submission — with evidence, chronology, and professional correspondence to the trustee.",
+    disclaimer:
+      "Private Office provides document preparation, evidence organization, and mailing assistance. It is not a law firm, fiduciary, trustee, court, or government agency and does not provide legal advice, determine beneficiary status, interpret trust instruments as legal conclusions, or guarantee any outcome including inheritance or distribution.",
     lifecycle: "gold",
   },
 ];

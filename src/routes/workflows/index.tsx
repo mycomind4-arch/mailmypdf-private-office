@@ -30,7 +30,7 @@ function WorkflowDirectory() {
       </section>
       <section className="py-12">
         <div className="container max-w-5xl">
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-4">
             {Object.values(workflows).map((wf) => {
               const profile = workflowProfiles[wf.id];
               return (

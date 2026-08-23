@@ -194,4 +194,62 @@ export const workflowProfiles: Record<WorkflowId, WorkflowProfile> = {
       registeredMail: 24.99,
     },
   },
+  "trust-beneficiary-notice": {
+    id: "trust-beneficiary-notice",
+    slug: "trust-beneficiary-notice",
+    family: "Trust & Estate",
+    primaryKeyword: "trust beneficiary notice",
+    supportingKeywords: [
+      "beneficiary letter to trustee",
+      "request trust accounting",
+      "beneficiary information request",
+      "trustee communication letter",
+      "trust distribution request",
+      "beneficiary request for trust documents",
+      "trust beneficiary correspondence",
+    ],
+    searchIntent: "commercial",
+    problem:
+      "A trust beneficiary needs to document a trust matter — requesting information, accounting, distribution status, clarification from the trustee, or submitting documentation — and requires professional correspondence with a clear factual record, chronology, and proof of delivery.",
+    outcome:
+      "Create a documented trust beneficiary notice or correspondence identifying the trust, the trustee, the beneficiary, the matter, the trustee's position, the evidence, the chronology, and the requested resolution.",
+    recipientRole: "trustee",
+    requiredFacts: [
+      "trust name",
+      "trustee name",
+      "beneficiary name",
+      "relevant date",
+      "matter description",
+      "trustee position",
+    ],
+    evidenceRequirements: [
+      "trust instrument or trust document",
+      "amendments or restatements",
+      "trustee correspondence",
+      "beneficiary notice or prior communication",
+      "accounting or financial records",
+      "distribution records",
+      "inventory or asset documentation",
+      "court documents when applicable",
+      "death certificate when relevant",
+      "supporting communications",
+    ],
+    deadlinePolicy:
+      "Trust and beneficiary deadlines depend on jurisdiction, trust language, event type, applicable statute, notice date, trustee action, and court involvement. Capture all dates visible in trust documents, trustee correspondence, and court filings. Distinguish known deadlines explicitly stated in the trust instrument, trustee correspondence, or court orders from potential deadlines that depend on jurisdiction, applicable statute, or trust provisions. Flag any stated response deadlines, notice periods, or accounting timeframes as known deadlines. Flag any statutory limitation periods, trust-code deadlines, or court-imposed deadlines as potential deadlines requiring verification. Do not invent a legal deadline. Potential deadline identified — verify against the applicable trust documents, jurisdiction, and professional guidance. Surface all date facts for human review.",
+    objectivePrompt:
+      "What specific resolution are you requesting from the trustee — provide accounting, distribute assets, respond to information request, clarify trust provisions, acknowledge beneficiary status, preserve documents, or other documented resolution?",
+    draftSubject: "Trust Beneficiary Correspondence",
+    disclaimer:
+      "Private Office provides document preparation, evidence organization, and mailing assistance. It is not a law firm, fiduciary, trustee, court, or government agency and does not provide legal advice, determine beneficiary status, interpret trust instruments as legal conclusions, determine whether a trustee has violated fiduciary duties, or guarantee any outcome including inheritance or distribution. You remain responsible for the facts and decisions in your matter.",
+    pricing: {
+      preparationFee: 39.99,
+      includedResponsePages: 4,
+      responsePagePrice: 0.45,
+      supportingPagePrice: 0.25,
+      standardMail: 5.49,
+      certifiedMail: 12.99,
+      certifiedReturnReceipt: 18.99,
+      registeredMail: 24.99,
+    },
+  },
 };

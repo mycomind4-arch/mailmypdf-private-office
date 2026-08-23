@@ -20,6 +20,12 @@ describe("workflow registry", () => {
     expect(workflows["bank-wire-dispute"].title).toBe("Bank & Wire Transfer Dispute");
   });
 
+  it("registers trust-beneficiary-notice as a Gold Standard workflow", () => {
+    expect(workflows["trust-beneficiary-notice"]).toBeDefined();
+    expect(workflows["trust-beneficiary-notice"].lifecycle).toBe("gold");
+    expect(workflows["trust-beneficiary-notice"].title).toBe("Trust Beneficiary Notice");
+  });
+
   it("defines the canonical 18 Gold Standard stages for all workflows", () => {
     for (const id of Object.keys(workflows) as WorkflowId[]) {
       const stages = workflows[id].goldStandardStages;
@@ -54,20 +60,23 @@ describe("workflow registry", () => {
     }
   });
 
-  it("exposes a workflow list with all three workflows", () => {
-    expect(workflowList).toHaveLength(3);
+  it("exposes a workflow list with all four workflows", () => {
+    expect(workflowList).toHaveLength(4);
     expect(workflowList.map((w) => w.id)).toContain("contractor-dispute");
     expect(workflowList.map((w) => w.id)).toContain("property-insurance-claim");
     expect(workflowList.map((w) => w.id)).toContain("bank-wire-dispute");
+    expect(workflowList.map((w) => w.id)).toContain("trust-beneficiary-notice");
   });
 
   it("workflow IDs are string literals", () => {
     const contractorId: WorkflowId = "contractor-dispute";
     const insuranceId: WorkflowId = "property-insurance-claim";
     const bankId: WorkflowId = "bank-wire-dispute";
+    const trustId: WorkflowId = "trust-beneficiary-notice";
     expect(workflows[contractorId]).toBeDefined();
     expect(workflows[insuranceId]).toBeDefined();
     expect(workflows[bankId]).toBeDefined();
+    expect(workflows[trustId]).toBeDefined();
   });
 
   it("property-insurance-claim has a description mentioning insurance claims", () => {
@@ -78,8 +87,18 @@ describe("workflow registry", () => {
     expect(workflows["bank-wire-dispute"].description).toContain("wire transfer");
   });
 
+  it("trust-beneficiary-notice has a description mentioning trust beneficiary", () => {
+    expect(workflows["trust-beneficiary-notice"].description).toContain("trust beneficiary");
+  });
+
   it("bank-wire-dispute disclaimer mentions not a bank or regulator", () => {
     expect(workflows["bank-wire-dispute"].disclaimer).toContain("not a law firm");
     expect(workflows["bank-wire-dispute"].disclaimer).toContain("bank");
+  });
+
+  it("trust-beneficiary-notice disclaimer mentions not a fiduciary or trustee", () => {
+    expect(workflows["trust-beneficiary-notice"].disclaimer).toContain("not a law firm");
+    expect(workflows["trust-beneficiary-notice"].disclaimer).toContain("fiduciary");
+    expect(workflows["trust-beneficiary-notice"].disclaimer).toContain("trustee");
   });
 });

@@ -16,6 +16,7 @@ import { Route as WorkflowsIndexRouteImport } from './routes/workflows/index'
 import { Route as WorkflowsBankWireDisputeRouteImport } from './routes/workflows/bank-wire-dispute'
 import { Route as WorkflowsContractorDisputeRouteImport } from './routes/workflows/contractor-dispute'
 import { Route as WorkflowsPropertyInsuranceClaimRouteImport } from './routes/workflows/property-insurance-claim'
+import { Route as WorkflowsTrustBeneficiaryNoticeRouteImport } from './routes/workflows/trust-beneficiary-notice'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -55,6 +56,12 @@ const WorkflowsPropertyInsuranceClaimRoute =
     path: '/workflows/property-insurance-claim',
     getParentRoute: () => rootRouteImport,
   } as any)
+const WorkflowsTrustBeneficiaryNoticeRoute =
+  WorkflowsTrustBeneficiaryNoticeRouteImport.update({
+    id: '/workflows/trust-beneficiary-notice',
+    path: '/workflows/trust-beneficiary-notice',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -63,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/workflows/bank-wire-dispute': typeof WorkflowsBankWireDisputeRoute
   '/workflows/contractor-dispute': typeof WorkflowsContractorDisputeRoute
   '/workflows/property-insurance-claim': typeof WorkflowsPropertyInsuranceClaimRoute
+  '/workflows/trust-beneficiary-notice': typeof WorkflowsTrustBeneficiaryNoticeRoute
   '/workflows/': typeof WorkflowsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -72,6 +80,7 @@ export interface FileRoutesByTo {
   '/workflows/bank-wire-dispute': typeof WorkflowsBankWireDisputeRoute
   '/workflows/contractor-dispute': typeof WorkflowsContractorDisputeRoute
   '/workflows/property-insurance-claim': typeof WorkflowsPropertyInsuranceClaimRoute
+  '/workflows/trust-beneficiary-notice': typeof WorkflowsTrustBeneficiaryNoticeRoute
   '/workflows': typeof WorkflowsIndexRoute
 }
 export interface FileRoutesById {
@@ -82,6 +91,7 @@ export interface FileRoutesById {
   '/workflows/bank-wire-dispute': typeof WorkflowsBankWireDisputeRoute
   '/workflows/contractor-dispute': typeof WorkflowsContractorDisputeRoute
   '/workflows/property-insurance-claim': typeof WorkflowsPropertyInsuranceClaimRoute
+  '/workflows/trust-beneficiary-notice': typeof WorkflowsTrustBeneficiaryNoticeRoute
   '/workflows/': typeof WorkflowsIndexRoute
 }
 export interface FileRouteTypes {
@@ -93,6 +103,7 @@ export interface FileRouteTypes {
     | '/workflows/bank-wire-dispute'
     | '/workflows/contractor-dispute'
     | '/workflows/property-insurance-claim'
+    | '/workflows/trust-beneficiary-notice'
     | '/workflows/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -102,6 +113,7 @@ export interface FileRouteTypes {
     | '/workflows/bank-wire-dispute'
     | '/workflows/contractor-dispute'
     | '/workflows/property-insurance-claim'
+    | '/workflows/trust-beneficiary-notice'
     | '/workflows'
   id:
     | '__root__'
@@ -111,6 +123,7 @@ export interface FileRouteTypes {
     | '/workflows/bank-wire-dispute'
     | '/workflows/contractor-dispute'
     | '/workflows/property-insurance-claim'
+    | '/workflows/trust-beneficiary-notice'
     | '/workflows/'
   fileRoutesById: FileRoutesById
 }
@@ -121,6 +134,7 @@ export interface RootRouteChildren {
   WorkflowsBankWireDisputeRoute: typeof WorkflowsBankWireDisputeRoute
   WorkflowsContractorDisputeRoute: typeof WorkflowsContractorDisputeRoute
   WorkflowsPropertyInsuranceClaimRoute: typeof WorkflowsPropertyInsuranceClaimRoute
+  WorkflowsTrustBeneficiaryNoticeRoute: typeof WorkflowsTrustBeneficiaryNoticeRoute
   WorkflowsIndexRoute: typeof WorkflowsIndexRoute
 }
 
@@ -175,6 +189,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkflowsPropertyInsuranceClaimRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/workflows/trust-beneficiary-notice': {
+      id: '/workflows/trust-beneficiary-notice'
+      path: '/workflows/trust-beneficiary-notice'
+      fullPath: '/workflows/trust-beneficiary-notice'
+      preLoaderRoute: typeof WorkflowsTrustBeneficiaryNoticeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -185,6 +206,7 @@ const rootRouteChildren: RootRouteChildren = {
   WorkflowsBankWireDisputeRoute: WorkflowsBankWireDisputeRoute,
   WorkflowsContractorDisputeRoute: WorkflowsContractorDisputeRoute,
   WorkflowsPropertyInsuranceClaimRoute: WorkflowsPropertyInsuranceClaimRoute,
+  WorkflowsTrustBeneficiaryNoticeRoute: WorkflowsTrustBeneficiaryNoticeRoute,
   WorkflowsIndexRoute: WorkflowsIndexRoute,
 }
 export const routeTree = rootRouteImport
