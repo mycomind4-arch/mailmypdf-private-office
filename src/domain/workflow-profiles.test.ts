@@ -145,3 +145,133 @@ describe("property-insurance-claim workflow profile", () => {
     expect(profile.problem).toContain("delayed");
   });
 });
+
+describe("bank-wire-dispute workflow profile", () => {
+  const profile = workflowProfiles["bank-wire-dispute"];
+
+  it("is registered in the profile registry", () => {
+    expect(profile).toBeDefined();
+    expect(profile.id).toBe("bank-wire-dispute");
+  });
+
+  it("belongs to the Financial family", () => {
+    expect(profile.family).toBe("Financial");
+  });
+
+  it("defines SEO keywords targeting bank wire dispute intent", () => {
+    expect(profile.primaryKeyword).toBe("bank wire transfer dispute letter");
+    expect(profile.supportingKeywords).toContain("wire transfer dispute");
+    expect(profile.supportingKeywords).toContain("unauthorized wire transfer letter");
+    expect(profile.supportingKeywords).toContain("bank transfer dispute letter");
+    expect(profile.supportingKeywords).toContain("wire transfer recall request");
+    expect(profile.supportingKeywords).toContain("bank reimbursement request");
+    expect(profile.supportingKeywords).toContain("wire fraud documentation");
+    expect(profile.supportingKeywords).toContain("disputed transaction letter");
+  });
+
+  it("has commercial search intent", () => {
+    expect(profile.searchIntent).toBe("commercial");
+  });
+
+  it("defines required facts for bank/wire dispute intake", () => {
+    expect(profile.requiredFacts).toContain("financial institution");
+    expect(profile.requiredFacts).toContain("account holder name");
+    expect(profile.requiredFacts).toContain("transaction date");
+    expect(profile.requiredFacts).toContain("transaction amount");
+    expect(profile.requiredFacts).toContain("dispute description");
+    expect(profile.requiredFacts).toContain("bank response");
+  });
+
+  it("requires exactly 6 facts (not including requested resolution, which is the objective)", () => {
+    expect(profile.requiredFacts).toHaveLength(6);
+  });
+
+  it("does not include requested resolution as a required fact (objective covers it)", () => {
+    expect(profile.requiredFacts).not.toContain("requested resolution");
+  });
+
+  it("does not require full account numbers (data minimization)", () => {
+    expect(profile.requiredFacts).not.toContain("account number");
+    expect(profile.requiredFacts).not.toContain("full account number");
+  });
+
+  it("does not require passwords, PINs, or credentials", () => {
+    const allFacts = profile.requiredFacts.join(" ").toLowerCase();
+    expect(allFacts).not.toContain("password");
+    expect(allFacts).not.toContain("pin");
+    expect(allFacts).not.toContain("credential");
+  });
+
+  it("defines evidence requirements for bank/wire disputes", () => {
+    expect(profile.evidenceRequirements).toContain("bank statement showing the transaction");
+    expect(profile.evidenceRequirements).toContain("wire transfer confirmation or receipt");
+    expect(profile.evidenceRequirements).toContain("bank correspondence regarding the dispute");
+    expect(profile.evidenceRequirements).toContain("dispute or recall request documentation");
+    expect(profile.evidenceRequirements).toContain("bank investigation response or status update");
+    expect(profile.evidenceRequirements).toContain("beneficiary or recipient information");
+    expect(profile.evidenceRequirements).toContain("supporting communications email chat or phone logs");
+  });
+
+  it("targets the bank as recipient", () => {
+    expect(profile.recipientRole).toBe("bank");
+  });
+
+  it("includes a pricing profile", () => {
+    expect(profile.pricing.preparationFee).toBeGreaterThan(0);
+    expect(profile.pricing.includedResponsePages).toBeGreaterThan(0);
+    expect(profile.pricing.certifiedMail).toBeGreaterThan(profile.pricing.standardMail);
+    expect(profile.pricing.certifiedReturnReceipt).toBeGreaterThan(profile.pricing.certifiedMail);
+  });
+
+  it("includes a deadline policy that does not invent deadlines", () => {
+    expect(profile.deadlinePolicy).toContain("Do not invent");
+  });
+
+  it("deadline policy distinguishes known deadlines from potential deadlines", () => {
+    expect(profile.deadlinePolicy).toContain("known deadlines");
+    expect(profile.deadlinePolicy).toContain("potential deadlines");
+  });
+
+  it("deadline policy includes verification language for uncertain deadlines", () => {
+    expect(profile.deadlinePolicy).toContain("verify against the applicable account agreement");
+  });
+
+  it("deadline policy mentions jurisdiction and transaction type variability", () => {
+    expect(profile.deadlinePolicy).toContain("jurisdiction");
+    expect(profile.deadlinePolicy).toContain("transaction type");
+  });
+
+  it("includes a disclaimer stating it is not a law firm", () => {
+    expect(profile.disclaimer).toContain("not a law firm");
+  });
+
+  it("includes a disclaimer stating it is not a bank or regulator", () => {
+    expect(profile.disclaimer).toContain("bank");
+    expect(profile.disclaimer).toContain("regulator");
+  });
+
+  it("disclaimer does not guarantee recovery", () => {
+    expect(profile.disclaimer).toContain("does not");
+    expect(profile.disclaimer.toLowerCase()).toContain("recovery");
+  });
+
+  it("has a draft subject for bank wire dispute correspondence", () => {
+    expect(profile.draftSubject).toContain("Wire Transfer");
+  });
+
+  it("has an objective prompt about requested resolution from the bank", () => {
+    expect(profile.objectivePrompt).toContain("financial institution");
+    expect(profile.objectivePrompt).toContain("resolution");
+  });
+
+  it("objective prompt includes investigation, recall, and reimbursement options", () => {
+    expect(profile.objectivePrompt).toContain("investigation");
+    expect(profile.objectivePrompt).toContain("recall");
+    expect(profile.objectivePrompt).toContain("reimbursement");
+  });
+
+  it("describes the problem involving disputed transfers", () => {
+    expect(profile.problem).toContain("disputed");
+    expect(profile.problem).toContain("wire");
+  });
+});

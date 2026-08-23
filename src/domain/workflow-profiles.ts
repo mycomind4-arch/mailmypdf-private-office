@@ -137,4 +137,61 @@ export const workflowProfiles: Record<WorkflowId, WorkflowProfile> = {
       registeredMail: 24.99,
     },
   },
+  "bank-wire-dispute": {
+    id: "bank-wire-dispute",
+    slug: "bank-wire-dispute",
+    family: "Financial",
+    primaryKeyword: "bank wire transfer dispute letter",
+    supportingKeywords: [
+      "wire transfer dispute",
+      "unauthorized wire transfer letter",
+      "bank transfer dispute letter",
+      "wire transfer recall request",
+      "bank reimbursement request",
+      "wire fraud documentation",
+      "disputed transaction letter",
+    ],
+    searchIntent: "commercial",
+    problem:
+      "A bank or wire transfer has been disputed — an unauthorized wire, mistaken transfer, beneficiary or account error, bank refusal, delayed investigation, or disputed transaction — and the account holder needs to document the matter with transaction records, chronology, and professional correspondence to the financial institution.",
+    outcome:
+      "Create a documented bank and wire transfer dispute letter identifying the financial institution, the account holder, the transaction, the dispute, the bank's response, the evidence, the chronology, and the requested resolution.",
+    recipientRole: "bank",
+    requiredFacts: [
+      "financial institution",
+      "account holder name",
+      "transaction date",
+      "transaction amount",
+      "dispute description",
+      "bank response",
+    ],
+    evidenceRequirements: [
+      "bank statement showing the transaction",
+      "wire transfer confirmation or receipt",
+      "transaction confirmation or transfer record",
+      "bank correspondence regarding the dispute",
+      "dispute or recall request documentation",
+      "bank investigation response or status update",
+      "beneficiary or recipient information",
+      "relevant invoices contracts or agreements",
+      "supporting communications email chat or phone logs",
+    ],
+    deadlinePolicy:
+      "Financial transaction dispute timelines vary by transaction type, institution, jurisdiction, account type, applicable agreement, and whether the transaction is classified as unauthorized or fraudulent. Capture all dates visible in bank statements, correspondence, and account agreements. Distinguish known deadlines explicitly stated in bank correspondence, account agreements, or documented policy from potential deadlines that depend on jurisdiction, regulator rules, or fraud classification. Flag any stated response deadlines, investigation timeframes, or claim windows as known deadlines. Flag any regulatory deadlines or statutory limitation periods as potential deadlines requiring verification. Do not invent a regulatory deadline. Potential deadline identified — verify against the applicable account agreement, institution policy, and jurisdiction. Surface all date facts for human review.",
+    objectivePrompt:
+      "What specific resolution are you requesting from the financial institution — investigation, recall, correction, reimbursement, written explanation, status update, document preservation, or other documented resolution?",
+    draftSubject: "Bank and Wire Transfer Dispute Correspondence",
+    disclaimer:
+      "Private Office provides document preparation, evidence organization, and mailing assistance. It is not a law firm, bank, regulator, or law enforcement agency and does not provide legal advice, determine whether a transaction was legally unauthorized, or guarantee any outcome including recovery. You remain responsible for the facts and decisions in your matter.",
+    pricing: {
+      preparationFee: 34.99,
+      includedResponsePages: 4,
+      responsePagePrice: 0.45,
+      supportingPagePrice: 0.25,
+      standardMail: 5.49,
+      certifiedMail: 12.99,
+      certifiedReturnReceipt: 18.99,
+      registeredMail: 24.99,
+    },
+  },
 };

@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as WorkflowsIndexRouteImport } from './routes/workflows/index'
+import { Route as WorkflowsBankWireDisputeRouteImport } from './routes/workflows/bank-wire-dispute'
 import { Route as WorkflowsContractorDisputeRouteImport } from './routes/workflows/contractor-dispute'
 import { Route as WorkflowsPropertyInsuranceClaimRouteImport } from './routes/workflows/property-insurance-claim'
 
@@ -36,6 +37,12 @@ const WorkflowsIndexRoute = WorkflowsIndexRouteImport.update({
   path: '/workflows/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WorkflowsBankWireDisputeRoute =
+  WorkflowsBankWireDisputeRouteImport.update({
+    id: '/workflows/bank-wire-dispute',
+    path: '/workflows/bank-wire-dispute',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const WorkflowsContractorDisputeRoute =
   WorkflowsContractorDisputeRouteImport.update({
     id: '/workflows/contractor-dispute',
@@ -53,6 +60,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/workflows/bank-wire-dispute': typeof WorkflowsBankWireDisputeRoute
   '/workflows/contractor-dispute': typeof WorkflowsContractorDisputeRoute
   '/workflows/property-insurance-claim': typeof WorkflowsPropertyInsuranceClaimRoute
   '/workflows/': typeof WorkflowsIndexRoute
@@ -61,6 +69,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/workflows/bank-wire-dispute': typeof WorkflowsBankWireDisputeRoute
   '/workflows/contractor-dispute': typeof WorkflowsContractorDisputeRoute
   '/workflows/property-insurance-claim': typeof WorkflowsPropertyInsuranceClaimRoute
   '/workflows': typeof WorkflowsIndexRoute
@@ -70,6 +79,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/workflows/bank-wire-dispute': typeof WorkflowsBankWireDisputeRoute
   '/workflows/contractor-dispute': typeof WorkflowsContractorDisputeRoute
   '/workflows/property-insurance-claim': typeof WorkflowsPropertyInsuranceClaimRoute
   '/workflows/': typeof WorkflowsIndexRoute
@@ -80,6 +90,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/dashboard'
+    | '/workflows/bank-wire-dispute'
     | '/workflows/contractor-dispute'
     | '/workflows/property-insurance-claim'
     | '/workflows/'
@@ -88,6 +99,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/dashboard'
+    | '/workflows/bank-wire-dispute'
     | '/workflows/contractor-dispute'
     | '/workflows/property-insurance-claim'
     | '/workflows'
@@ -96,6 +108,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/dashboard'
+    | '/workflows/bank-wire-dispute'
     | '/workflows/contractor-dispute'
     | '/workflows/property-insurance-claim'
     | '/workflows/'
@@ -105,6 +118,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   DashboardRoute: typeof DashboardRoute
+  WorkflowsBankWireDisputeRoute: typeof WorkflowsBankWireDisputeRoute
   WorkflowsContractorDisputeRoute: typeof WorkflowsContractorDisputeRoute
   WorkflowsPropertyInsuranceClaimRoute: typeof WorkflowsPropertyInsuranceClaimRoute
   WorkflowsIndexRoute: typeof WorkflowsIndexRoute
@@ -140,6 +154,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkflowsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/workflows/bank-wire-dispute': {
+      id: '/workflows/bank-wire-dispute'
+      path: '/workflows/bank-wire-dispute'
+      fullPath: '/workflows/bank-wire-dispute'
+      preLoaderRoute: typeof WorkflowsBankWireDisputeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/workflows/contractor-dispute': {
       id: '/workflows/contractor-dispute'
       path: '/workflows/contractor-dispute'
@@ -161,6 +182,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   DashboardRoute: DashboardRoute,
+  WorkflowsBankWireDisputeRoute: WorkflowsBankWireDisputeRoute,
   WorkflowsContractorDisputeRoute: WorkflowsContractorDisputeRoute,
   WorkflowsPropertyInsuranceClaimRoute: WorkflowsPropertyInsuranceClaimRoute,
   WorkflowsIndexRoute: WorkflowsIndexRoute,

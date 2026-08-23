@@ -45,11 +45,18 @@ const workflowCards = [
     href: "/workflows/property-insurance-claim",
     family: "Property",
   },
+  {
+    title: "Bank & Wire Transfer Dispute",
+    description:
+      "Document a bank or wire transfer dispute — unauthorized wires, mistaken transfers, beneficiary errors, bank refusals, or delayed investigations — with transaction records, chronology, and professional correspondence.",
+    href: "/workflows/bank-wire-dispute",
+    family: "Financial",
+  },
 ];
 
 const faqItems = [
   { q: "Is this legal advice?", a: "No. Private Office is a correspondence preparation and evidence documentation service. It is not a law firm and does not provide legal advice or representation." },
-  { q: "What can I use Private Office for?", a: "High-stakes correspondence: contractor disputes, construction defect notices, demand letters, formal records requests, and other matters where professional preparation and proof of delivery matter." },
+  { q: "What can I use Private Office for?", a: "High-stakes correspondence: contractor disputes, property insurance claims, bank and wire transfer disputes, formal records requests, and other matters where professional preparation and proof of delivery matter." },
   { q: "How does the mailing work?", a: "Your final document is printed, enveloped, and mailed via USPS. Choose first-class, certified, or certified with return receipt for proof of delivery." },
   { q: "Is my data secure?", a: "All documents are encrypted and owner-scoped. No other user can access your matters, evidence, or delivery records. You can request deletion at any time." },
   { q: "Can I escalate a matter?", a: "Each workflow is designed with clean extension points for follow-up notices, demand letters, insurance claims, or legal escalation when needed." },
@@ -171,9 +178,9 @@ function HomePage() {
               Each workflow is a real, executable Gold Standard process — not a template.
             </p>
           </div>
-          <div className="mt-16 grid gap-8 md:grid-cols-2">
+          <div className="mt-16 grid gap-8 md:grid-cols-3">
             {workflowCards.map((wf) => (
-              <Link key={wf.title} to={wf.href as "/workflows/contractor-dispute" | "/workflows/property-insurance-claim"} className="card group p-6 transition hover:border-indigo-300 hover:shadow-lg">
+              <Link key={wf.title} to={wf.href as "/workflows/contractor-dispute" | "/workflows/property-insurance-claim" | "/workflows/bank-wire-dispute"} className="card group p-6 transition hover:border-indigo-300 hover:shadow-lg">
                 <div className="flex items-center justify-between">
                   <span className="badge badge-gold">{wf.family}</span>
                   <ArrowRight size={18} className="text-slate-300 transition group-hover:text-indigo-600" />

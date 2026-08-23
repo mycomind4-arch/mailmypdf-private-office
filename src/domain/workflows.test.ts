@@ -14,7 +14,13 @@ describe("workflow registry", () => {
     expect(workflows["property-insurance-claim"].title).toBe("Property Insurance Claim");
   });
 
-  it("defines the canonical 18 Gold Standard stages for both workflows", () => {
+  it("registers bank-wire-dispute as a Gold Standard workflow", () => {
+    expect(workflows["bank-wire-dispute"]).toBeDefined();
+    expect(workflows["bank-wire-dispute"].lifecycle).toBe("gold");
+    expect(workflows["bank-wire-dispute"].title).toBe("Bank & Wire Transfer Dispute");
+  });
+
+  it("defines the canonical 18 Gold Standard stages for all workflows", () => {
     for (const id of Object.keys(workflows) as WorkflowId[]) {
       const stages = workflows[id].goldStandardStages;
       expect(stages).toHaveLength(18);
@@ -23,7 +29,7 @@ describe("workflow registry", () => {
     }
   });
 
-  it("assigns P06 and P10 pipeline archetypes to both workflows", () => {
+  it("assigns P06 and P10 pipeline archetypes to all workflows", () => {
     for (const id of Object.keys(workflows) as WorkflowId[]) {
       const archetypes = workflows[id].pipelineArchetypes;
       expect(archetypes).toContain("P06");
@@ -31,7 +37,7 @@ describe("workflow registry", () => {
     }
   });
 
-  it("includes standard workflow steps for both workflows", () => {
+  it("includes standard workflow steps for all workflows", () => {
     for (const id of Object.keys(workflows) as WorkflowId[]) {
       const steps = workflows[id].steps;
       expect(steps).toContain("intro");
@@ -42,26 +48,38 @@ describe("workflow registry", () => {
     }
   });
 
-  it("includes a disclaimer for both workflows", () => {
+  it("includes a disclaimer for all workflows", () => {
     for (const id of Object.keys(workflows) as WorkflowId[]) {
       expect(workflows[id].disclaimer).toContain("not a law firm");
     }
   });
 
-  it("exposes a workflow list with both workflows", () => {
-    expect(workflowList).toHaveLength(2);
+  it("exposes a workflow list with all three workflows", () => {
+    expect(workflowList).toHaveLength(3);
     expect(workflowList.map((w) => w.id)).toContain("contractor-dispute");
     expect(workflowList.map((w) => w.id)).toContain("property-insurance-claim");
+    expect(workflowList.map((w) => w.id)).toContain("bank-wire-dispute");
   });
 
   it("workflow IDs are string literals", () => {
     const contractorId: WorkflowId = "contractor-dispute";
     const insuranceId: WorkflowId = "property-insurance-claim";
+    const bankId: WorkflowId = "bank-wire-dispute";
     expect(workflows[contractorId]).toBeDefined();
     expect(workflows[insuranceId]).toBeDefined();
+    expect(workflows[bankId]).toBeDefined();
   });
 
   it("property-insurance-claim has a description mentioning insurance claims", () => {
     expect(workflows["property-insurance-claim"].description).toContain("insurance claim");
+  });
+
+  it("bank-wire-dispute has a description mentioning wire transfer", () => {
+    expect(workflows["bank-wire-dispute"].description).toContain("wire transfer");
+  });
+
+  it("bank-wire-dispute disclaimer mentions not a bank or regulator", () => {
+    expect(workflows["bank-wire-dispute"].disclaimer).toContain("not a law firm");
+    expect(workflows["bank-wire-dispute"].disclaimer).toContain("bank");
   });
 });

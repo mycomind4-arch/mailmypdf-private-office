@@ -1,4 +1,4 @@
-export type WorkflowId = "contractor-dispute" | "property-insurance-claim";
+export type WorkflowId = "contractor-dispute" | "property-insurance-claim" | "bank-wire-dispute";
 
 export type WorkflowStep =
   | "intro"
@@ -86,6 +86,15 @@ const definitions: Array<
       "Document and pursue a property insurance claim — denied claims, underpayments, disputed scope, delayed responses, or supplemental claims — with evidence, chronology, and professional correspondence.",
     disclaimer:
       "Private Office provides document preparation, evidence organization, and mailing assistance. It is not a law firm and does not provide legal advice or representation.",
+    lifecycle: "gold",
+  },
+  {
+    id: "bank-wire-dispute",
+    title: "Bank & Wire Transfer Dispute",
+    description:
+      "Document a bank or wire transfer dispute — unauthorized wires, mistaken transfers, beneficiary errors, bank refusal, delayed investigation, or disputed transactions — with transaction records, chronology, evidence, and professional correspondence.",
+    disclaimer:
+      "Private Office provides document preparation, evidence organization, and mailing assistance. It is not a law firm, bank, regulator, or law enforcement agency and does not provide legal advice, determine whether a transaction was unauthorized, or guarantee recovery.",
     lifecycle: "gold",
   },
 ];
