@@ -80,7 +80,7 @@ function DashboardPage() {
                 Manage your active matters, review drafts, and track delivery.
               </p>
             </div>
-            <Link to="/workflows/contractor-dispute" className="btn-gold">
+            <Link to="/workflows" className="btn-gold">
               Start a new matter <ArrowRight size={16} />
             </Link>
           </div>
@@ -98,8 +98,8 @@ function DashboardPage() {
               <p className="mt-2 text-sm text-slate-500">
                 Start your first matter to prepare, review, send, and document professional correspondence.
               </p>
-              <Link to="/workflows/contractor-dispute" className="btn-primary mt-6">
-                Start a Contractor Dispute <ArrowRight size={16} />
+              <Link to="/workflows" className="btn-primary mt-6">
+                Browse workflows <ArrowRight size={16} />
               </Link>
             </div>
           ) : (
@@ -131,7 +131,7 @@ function DashboardPage() {
             </h2>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               {Object.values(workflows).map((wf) => (
-                <Link key={wf.id} to="/workflows/contractor-dispute" className="card group p-6 transition hover:border-indigo-300">
+                <Link key={wf.id} to={`/workflows/${wf.id}`} className="card group p-6 transition hover:border-indigo-300">
                   <div className="flex items-center justify-between">
                     <FileText size={20} className="text-indigo-600" />
                     <ArrowRight size={16} className="text-slate-300 transition group-hover:text-indigo-600" />

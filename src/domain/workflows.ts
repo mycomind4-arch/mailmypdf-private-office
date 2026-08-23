@@ -1,4 +1,4 @@
-export type WorkflowId = "contractor-dispute";
+export type WorkflowId = "contractor-dispute" | "property-insurance-claim";
 
 export type WorkflowStep =
   | "intro"
@@ -77,6 +77,15 @@ const definitions: Array<
       "Prepare a documented contractor dispute letter for defective work, incomplete work, billing disputes, or breach of agreement — with evidence, timeline, and proof of delivery.",
     disclaimer:
       "Private Office provides document preparation and mailing assistance. It is not a law firm and does not provide legal advice or representation.",
+    lifecycle: "gold",
+  },
+  {
+    id: "property-insurance-claim",
+    title: "Property Insurance Claim",
+    description:
+      "Document and pursue a property insurance claim — denied claims, underpayments, disputed scope, delayed responses, or supplemental claims — with evidence, chronology, and professional correspondence.",
+    disclaimer:
+      "Private Office provides document preparation, evidence organization, and mailing assistance. It is not a law firm and does not provide legal advice or representation.",
     lifecycle: "gold",
   },
 ];

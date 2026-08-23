@@ -36,7 +36,7 @@ function WorkflowDirectory() {
               return (
                 <Link
                   key={wf.id}
-                  to="/workflows/contractor-dispute"
+                  to={`/workflows/${wf.id}`}
                   className="card group p-6 transition hover:border-indigo-300 hover:shadow-lg"
                 >
                   <div className="flex items-center justify-between">

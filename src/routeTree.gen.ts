@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as WorkflowsIndexRouteImport } from './routes/workflows/index'
 import { Route as WorkflowsContractorDisputeRouteImport } from './routes/workflows/contractor-dispute'
+import { Route as WorkflowsPropertyInsuranceClaimRouteImport } from './routes/workflows/property-insurance-claim'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -41,12 +42,19 @@ const WorkflowsContractorDisputeRoute =
     path: '/workflows/contractor-dispute',
     getParentRoute: () => rootRouteImport,
   } as any)
+const WorkflowsPropertyInsuranceClaimRoute =
+  WorkflowsPropertyInsuranceClaimRouteImport.update({
+    id: '/workflows/property-insurance-claim',
+    path: '/workflows/property-insurance-claim',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
   '/workflows/contractor-dispute': typeof WorkflowsContractorDisputeRoute
+  '/workflows/property-insurance-claim': typeof WorkflowsPropertyInsuranceClaimRoute
   '/workflows/': typeof WorkflowsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -54,6 +62,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
   '/workflows/contractor-dispute': typeof WorkflowsContractorDisputeRoute
+  '/workflows/property-insurance-claim': typeof WorkflowsPropertyInsuranceClaimRoute
   '/workflows': typeof WorkflowsIndexRoute
 }
 export interface FileRoutesById {
@@ -62,6 +71,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
   '/workflows/contractor-dispute': typeof WorkflowsContractorDisputeRoute
+  '/workflows/property-insurance-claim': typeof WorkflowsPropertyInsuranceClaimRoute
   '/workflows/': typeof WorkflowsIndexRoute
 }
 export interface FileRouteTypes {
@@ -71,6 +81,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dashboard'
     | '/workflows/contractor-dispute'
+    | '/workflows/property-insurance-claim'
     | '/workflows/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -78,6 +89,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dashboard'
     | '/workflows/contractor-dispute'
+    | '/workflows/property-insurance-claim'
     | '/workflows'
   id:
     | '__root__'
@@ -85,6 +97,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dashboard'
     | '/workflows/contractor-dispute'
+    | '/workflows/property-insurance-claim'
     | '/workflows/'
   fileRoutesById: FileRoutesById
 }
@@ -93,6 +106,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   DashboardRoute: typeof DashboardRoute
   WorkflowsContractorDisputeRoute: typeof WorkflowsContractorDisputeRoute
+  WorkflowsPropertyInsuranceClaimRoute: typeof WorkflowsPropertyInsuranceClaimRoute
   WorkflowsIndexRoute: typeof WorkflowsIndexRoute
 }
 
@@ -133,6 +147,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkflowsContractorDisputeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/workflows/property-insurance-claim': {
+      id: '/workflows/property-insurance-claim'
+      path: '/workflows/property-insurance-claim'
+      fullPath: '/workflows/property-insurance-claim'
+      preLoaderRoute: typeof WorkflowsPropertyInsuranceClaimRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -141,6 +162,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   DashboardRoute: DashboardRoute,
   WorkflowsContractorDisputeRoute: WorkflowsContractorDisputeRoute,
+  WorkflowsPropertyInsuranceClaimRoute: WorkflowsPropertyInsuranceClaimRoute,
   WorkflowsIndexRoute: WorkflowsIndexRoute,
 }
 export const routeTree = rootRouteImport

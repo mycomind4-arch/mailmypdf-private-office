@@ -38,6 +38,13 @@ const workflowCards = [
     href: "/workflows/contractor-dispute",
     family: "Property",
   },
+  {
+    title: "Property Insurance Claim",
+    description:
+      "Document and pursue a property insurance claim — denied claims, underpayments, disputed scope, or supplemental claims — with evidence, chronology, and professional correspondence.",
+    href: "/workflows/property-insurance-claim",
+    family: "Property",
+  },
 ];
 
 const faqItems = [
@@ -78,7 +85,7 @@ function HomePage() {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link to="/workflows/contractor-dispute" className="btn-gold text-base">
-                Start a Contractor Dispute <ArrowRight size={18} />
+                Start a Matter <ArrowRight size={18} />
               </Link>
               <a
                 href="#how-it-works"
@@ -135,7 +142,7 @@ function HomePage() {
               Built for matters where the stakes are real
             </h2>
           </div>
-          <div className="mt-16 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-16 grid gap-8 md:grid-cols-2">
             {features.map((feature) => (
               <div key={feature.title} className="card p-6">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50">
@@ -164,9 +171,9 @@ function HomePage() {
               Each workflow is a real, executable Gold Standard process — not a template.
             </p>
           </div>
-          <div className="mt-16 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-16 grid gap-8 md:grid-cols-2">
             {workflowCards.map((wf) => (
-              <Link key={wf.title} to={wf.href as "/workflows/contractor-dispute"} className="card group p-6 transition hover:border-indigo-300 hover:shadow-lg">
+              <Link key={wf.title} to={wf.href as "/workflows/contractor-dispute" | "/workflows/property-insurance-claim"} className="card group p-6 transition hover:border-indigo-300 hover:shadow-lg">
                 <div className="flex items-center justify-between">
                   <span className="badge badge-gold">{wf.family}</span>
                   <ArrowRight size={18} className="text-slate-300 transition group-hover:text-indigo-600" />
