@@ -16,6 +16,8 @@ function buildEvidenceStatuses(status: "provided" = "provided"): Record<string, 
   return evidenceStatuses;
 }
 
+const draftHash = "test-draft-hash-abc123";
+
 describe("canonical Private Office workflow dispatcher", () => {
   it("dispatches the contractor-dispute workflow through the profile engine", () => {
     const result = runPrivateOfficeWorkflow({
@@ -80,7 +82,9 @@ describe("canonical Private Office workflow dispatcher", () => {
     expect(result.draft).toContain("[DRAFT — REVIEW BEFORE SENDING]");
     expect(result.draft).toContain("Requested resolution");
     expect(result.stages.find((s) => s.stage === "draft")?.status).toBe("passed");
-    expect(result.stages.find((s) => s.stage === "validate")?.status).toBe("passed");
+    expect(result.stages.find((s) => s.stage === "validate")?.status).toBe(
+      "passed",
+    );
   });
 
   it("skips consequential stages when no consequential state is supplied", () => {
@@ -111,6 +115,7 @@ describe("canonical Private Office workflow dispatcher", () => {
         mailingSubmitted: false,
         trackingNumber: null,
         proofReady: false,
+        approvedDraftHash: null,
       },
     });
     // Still blocked by missing facts, so approval will be blocked
@@ -140,6 +145,7 @@ describe("canonical Private Office workflow dispatcher", () => {
         mailingSubmitted: true,
         trackingNumber: "TRK-123",
         proofReady: true,
+        approvedDraftHash: draftHash,
       },
     });
     expect(result.ready).toBe(true);
@@ -147,6 +153,56 @@ describe("canonical Private Office workflow dispatcher", () => {
     expect(result.errors).toHaveLength(0);
     const proveAudit = result.stages.find((s) => s.stage === "prove-audit");
     expect(proveAudit?.status).toBe("passed");
+  });
+
+  it("blocks approval when approvedDraftHash is null in consequential state", () => {
+    const evidenceStatuses = buildEvidenceStatuses();
+
+    const result = runPrivateOfficeWorkflow({
+      workflowId: "contractor-dispute",
+      documentId: "doc-1",
+      text: "Contract dated January 15, 2026.",
+      facts: {
+        propertyAddress: "123 Main Street",
+        contractorName: "ABC Construction",
+        agreementReference: "Written contract",
+        disputeDescription: "Defective roof",
+      },
+      evidenceStatuses,
+      objective: "Request repair and refund.",
+      consequential: {
+        draftValidated: true,
+        humanApproved: true,
+        recipientComplete: true,
+        paymentComplete: true,
+        mailingSubmitted: true,
+        trackingNumber: "TRK-123",
+        proofReady: true,
+        approvedDraftHash: null,
+      },
+    });
+    expect(result.blocked).toBe(true);
+    expect(result.errors.some((e) => e.includes("approval"))).toBe(true);
+  });
+
+  it("returns draftHash as null in the result (computed by caller)", () => {
+    const evidenceStatuses = buildEvidenceStatuses();
+
+    const result = runPrivateOfficeWorkflow({
+      workflowId: "contractor-dispute",
+      documentId: "doc-1",
+      text: "Contract dated January 15, 2026.",
+      facts: {
+        propertyAddress: "123 Main Street",
+        contractorName: "ABC Construction",
+        agreementReference: "Written contract",
+        disputeDescription: "Defective roof",
+      },
+      evidenceStatuses,
+      objective: "Request repair and refund.",
+    });
+    expect(result.draftHash).toBe(null);
+    expect(result.draft.length).toBeGreaterThan(0);
   });
 });
 

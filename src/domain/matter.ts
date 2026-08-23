@@ -26,6 +26,8 @@ export const matterSchema = z.object({
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
   approvedAt: z.string().datetime().nullable(),
+  approvedDraftHash: z.string().nullable(),
+  draftHash: z.string().nullable(),
   submittedAt: z.string().datetime().nullable(),
   providerOrderId: z.string().nullable(),
   trackingNumber: z.string().nullable(),
@@ -40,7 +42,7 @@ const transitions: Record<MatterStatus, readonly MatterStatus[]> = {
   draft: ["validated", "cancelled"],
   validated: ["review", "cancelled"],
   review: ["approved", "validated", "cancelled"],
-  approved: ["payment_pending", "cancelled"],
+  approved: ["payment_pending", "review", "cancelled"],
   payment_pending: ["submitted", "failed", "cancelled"],
   submitted: ["tracking", "failed"],
   tracking: ["completed", "failed"],
@@ -63,7 +65,11 @@ export function transitionMatter(
   fields: Partial<
     Pick<
       PrivateOfficeMatter,
-      "providerOrderId" | "trackingNumber" | "proofHash"
+      | "providerOrderId"
+      | "trackingNumber"
+      | "proofHash"
+      | "draftHash"
+      | "approvedDraftHash"
     >
   > = {},
 ): PrivateOfficeMatter {
@@ -78,7 +84,19 @@ export function transitionMatter(
     version: current.version + 1,
     updatedAt: now,
   };
-  if (next === "approved") nextMatter.approvedAt = now;
+  if (next === "approved") {
+    nextMatter.approvedAt = now;
+    // Capture the draft hash at approval time so we can detect post-approval modification.
+    if (fields.draftHash !== undefined) {
+      nextMatter.approvedDraftHash = fields.draftHash;
+    }
+    // If no draftHash was supplied, use the current draftHash on the matter.
+    if (!nextMatter.approvedDraftHash && nextMatter.draftHash) {
+      nextMatter.approvedDraftHash = nextMatter.draftHash;
+    }
+    if (!nextMatter.approvedDraftHash)
+      throw new Error("Cannot approve matter without a draft hash");
+  }
   if (next === "submitted") {
     if (!nextMatter.providerOrderId)
       throw new Error("Submitted matter must record providerOrderId");

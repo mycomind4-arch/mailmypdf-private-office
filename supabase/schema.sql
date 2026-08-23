@@ -12,6 +12,8 @@ create table if not exists public.private_office_matters (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   approved_at timestamptz,
+  approved_draft_hash text,
+  draft_hash text,
   submitted_at timestamptz,
   provider_order_id text,
   tracking_number text,
@@ -40,12 +42,12 @@ create table if not exists public.private_office_evidence (
 create index if not exists private_office_evidence_matter_idx on public.private_office_evidence(matter_id, status);
 create index if not exists private_office_evidence_owner_idx on public.private_office_evidence(owner_id, updated_at desc);
 
--- Private Office events table (audit trail)
+-- Private Office events table (audit trail — immutable)
 create table if not exists public.private_office_events (
   id uuid primary key default gen_random_uuid(),
   matter_id uuid not null references public.private_office_matters(id) on delete cascade,
   owner_id text not null,
-  event_type text not null,
+  event_type text not null check (event_type in ('matter_created','intake_updated','document_added','evidence_added','evidence_verified','evidence_rejected','analysis_generated','draft_generated','draft_revised','draft_reviewed','approval_granted','approval_invalidated','fulfillment_requested','fulfillment_rejected','fulfillment_submitted','delivery_recorded','proof_recorded','escalation_triggered')),
   actor_id text,
   metadata jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now()
@@ -65,11 +67,13 @@ create table if not exists public.private_office_mailing_intents (
   status text not null default 'pending',
   mailing_method text not null,
   draft_content text not null,
+  draft_hash text not null,
   recipient jsonb not null,
   matter_reference text,
   matter_type text not null default 'private-office',
   provider_order_id text,
   tracking_number text,
+  idempotency_key text not null,
   error_message text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -78,6 +82,7 @@ create table if not exists public.private_office_mailing_intents (
 create index if not exists private_office_mailing_intents_owner_idx on public.private_office_mailing_intents(owner_id, updated_at desc);
 create index if not exists private_office_mailing_intents_stripe_idx on public.private_office_mailing_intents(stripe_session_id);
 create index if not exists private_office_mailing_intents_provider_idx on public.private_office_mailing_intents(provider_order_id);
+create unique index if not exists private_office_mailing_intents_idempotency_idx on public.private_office_mailing_intents(idempotency_key, owner_id);
 
 -- Enable Row Level Security
 alter table public.private_office_matters enable row level security;
@@ -104,10 +109,12 @@ create policy private_office_evidence_update_own on public.private_office_eviden
 drop policy if exists private_office_evidence_delete_own on public.private_office_evidence;
 create policy private_office_evidence_delete_own on public.private_office_evidence for delete using (auth.uid()::text = owner_id);
 
+-- Events are insert-only (immutable audit trail) — no update or delete policies
 drop policy if exists private_office_events_select_own on public.private_office_events;
 create policy private_office_events_select_own on public.private_office_events for select using (auth.uid()::text = owner_id);
 drop policy if exists private_office_events_insert_own on public.private_office_events;
 create policy private_office_events_insert_own on public.private_office_events for insert with check (auth.uid()::text = owner_id);
+-- Explicitly no update or delete policies on events — they are immutable
 
 drop policy if exists private_office_mailing_intents_select_own on public.private_office_mailing_intents;
 create policy private_office_mailing_intents_select_own on public.private_office_mailing_intents for select using (auth.uid()::text = owner_id);
@@ -147,3 +154,17 @@ $$;
 
 drop trigger if exists private_office_mailing_intents_owner_guard on public.private_office_mailing_intents;
 create trigger private_office_mailing_intents_owner_guard before update on public.private_office_mailing_intents for each row execute function public.prevent_private_office_mailing_owner_change();
+
+-- Draft hash immutability on mailing intents (draft_hash set at creation, cannot be changed)
+create or replace function public.prevent_draft_hash_change()
+returns trigger language plpgsql as $$
+begin
+  if new.draft_hash is distinct from old.draft_hash then
+    raise exception 'Cannot change draft hash on mailing intent';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists private_office_mailing_intents_draft_hash_guard on public.private_office_mailing_intents;
+create trigger private_office_mailing_intents_draft_hash_guard before update on public.private_office_mailing_intents for each row execute function public.prevent_draft_hash_change();

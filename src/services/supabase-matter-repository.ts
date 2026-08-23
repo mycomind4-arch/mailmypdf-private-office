@@ -23,6 +23,8 @@ interface SupabaseMatterRow {
   created_at: string;
   updated_at: string;
   approved_at: string | null;
+  approved_draft_hash: string | null;
+  draft_hash: string | null;
   submitted_at: string | null;
   provider_order_id: string | null;
   tracking_number: string | null;
@@ -63,6 +65,8 @@ function fromRow(row: SupabaseMatterRow): PrivateOfficeMatter {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     approvedAt: row.approved_at,
+    approvedDraftHash: row.approved_draft_hash,
+    draftHash: row.draft_hash,
     submittedAt: row.submitted_at,
     providerOrderId: row.provider_order_id,
     trackingNumber: row.tracking_number,
@@ -93,6 +97,8 @@ export class SupabaseMatterRepository implements MatterRepository {
       created_at: now,
       updated_at: now,
       approved_at: null,
+      approved_draft_hash: null,
+      draft_hash: null,
       submitted_at: null,
       provider_order_id: null,
       tracking_number: null,
@@ -152,6 +158,8 @@ export class SupabaseMatterRepository implements MatterRepository {
       "providerOrderId",
       "trackingNumber",
       "proofHash",
+      "draftHash",
+      "approvedDraftHash",
     ] as const) {
       if (field in patch) {
         const snakeKey = field.replace(/[A-Z]/g, (char) => `_${char.toLowerCase()}`);
@@ -184,7 +192,14 @@ export class SupabaseMatterRepository implements MatterRepository {
     expectedVersion: number,
     next: MatterStatus,
     fields: Partial<
-      Pick<PrivateOfficeMatter, "providerOrderId" | "trackingNumber" | "proofHash">
+      Pick<
+        PrivateOfficeMatter,
+        | "providerOrderId"
+        | "trackingNumber"
+        | "proofHash"
+        | "draftHash"
+        | "approvedDraftHash"
+      >
     > = {},
   ): Promise<PrivateOfficeMatter> {
     const current = await this.get(ownerId, matterId);
@@ -205,6 +220,8 @@ export class SupabaseMatterRepository implements MatterRepository {
       providerOrderId: nextMatter.providerOrderId,
       trackingNumber: nextMatter.trackingNumber,
       proofHash: nextMatter.proofHash,
+      draftHash: nextMatter.draftHash,
+      approvedDraftHash: nextMatter.approvedDraftHash,
     });
   }
 }

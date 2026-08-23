@@ -29,7 +29,11 @@ export interface MatterRepository {
     fields?: Partial<
       Pick<
         PrivateOfficeMatter,
-        "providerOrderId" | "trackingNumber" | "proofHash"
+        | "providerOrderId"
+        | "trackingNumber"
+        | "proofHash"
+        | "draftHash"
+        | "approvedDraftHash"
       >
     >,
   ): Promise<PrivateOfficeMatter>;

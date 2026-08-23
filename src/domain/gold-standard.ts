@@ -77,6 +77,15 @@ export const matterAnalysisSchema = z.object({
       detail: z.string(),
     }),
   ),
+  generationProvenance: z
+    .object({
+      provider: z.string(),
+      model: z.string(),
+      generatedAt: z.string(),
+      inputHash: z.string(),
+    })
+    .nullable()
+    .default(null),
 });
 export type MatterAnalysis = z.infer<typeof matterAnalysisSchema>;
 
@@ -272,6 +281,7 @@ export function analyzeMatterWorkflowInput(input: {
 
   return matterAnalysisSchema.parse({
     documentId: input.documentId,
+    generationProvenance: null,
     classification: {
       type: input.profile.id,
       confidence: text ? 0.9 : 0,

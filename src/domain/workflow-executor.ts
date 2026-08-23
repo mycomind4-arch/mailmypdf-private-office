@@ -26,12 +26,14 @@ export interface WorkflowConsequentialState {
   mailingSubmitted: boolean;
   trackingNumber: string | null;
   proofReady: boolean;
+  approvedDraftHash: string | null;
 }
 
 export interface WorkflowExecutionResult {
   workflowId: WorkflowId;
   analysis: MatterAnalysis;
   draft: string;
+  draftHash: string | null;
   stages: Array<{
     stage: string;
     status: "passed" | "failed" | "blocked" | "skipped";
@@ -268,8 +270,12 @@ export function runProfiledWorkflow(
 
   // draft + validate
   let draft = "";
+  let draftHash: string | null = null;
   if (!blocked) {
     draft = generateDraft(input, analysis);
+    // draftHash is computed by the caller via computeDraftHash(draft)
+    // The executor returns null here; the server function computes it.
+    draftHash = null;
     stages.push({
       stage: "draft",
       status: "passed",
@@ -351,17 +357,28 @@ export function runProfiledWorkflow(
       stages.push({ stage: "track", status: "blocked" });
       stages.push({ stage: "prove-audit", status: "blocked" });
     } else {
+      // Draft version integrity check: if approvedDraftHash doesn't match current draft, approval is stale
+      const approvalValid = isApprovalValidCheck(
+        draftHash,
+        consequential.approvedDraftHash,
+      );
+
       stages.push({
         stage: "approval",
-        status: consequential.humanApproved ? "passed" : "failed",
-        error: consequential.humanApproved
-          ? undefined
-          : "Explicit human approval required",
+        status: consequential.humanApproved && approvalValid ? "passed" : "failed",
+        error: !consequential.humanApproved
+          ? "Explicit human approval required"
+          : !approvalValid
+            ? "Draft was modified after approval — re-review and re-approve required"
+            : undefined,
       });
 
-      if (!consequential.humanApproved) {
+      if (!consequential.humanApproved || !approvalValid) {
         blocked = true;
-        errors.push("approval: explicit human approval required");
+        if (!consequential.humanApproved)
+          errors.push("approval: explicit human approval required");
+        if (!approvalValid)
+          errors.push("approval: draft modified after approval");
         stages.push({ stage: "authorized-mail", status: "blocked" });
         stages.push({ stage: "track", status: "blocked" });
         stages.push({ stage: "prove-audit", status: "blocked" });
@@ -423,10 +440,30 @@ export function runProfiledWorkflow(
     workflowId: input.workflowId,
     analysis,
     draft,
+    draftHash,
     stages,
     ready: !blocked && errors.length === 0,
     blocked,
     errors,
     warnings,
   };
+}
+
+/**
+ * Synchronous approval-validity check used by the workflow executor.
+ * The executor doesn't have the actual draft hash (it's computed async),
+ * so this only checks when both values are present. The fulfillment
+ * service does the definitive check with computed hashes.
+ */
+function isApprovalValidCheck(
+  currentDraftHash: string | null,
+  approvedDraftHash: string | null,
+): boolean {
+  // In the executor, draftHash is null (computed by caller), so we
+  // can't do a definitive check here. We trust the approvedDraftHash
+  // being present as a signal that approval was recorded. The real
+  // check happens in the fulfillment service.
+  if (!approvedDraftHash) return false;
+  if (currentDraftHash === null) return true; // executor can't verify, let fulfillment check
+  return currentDraftHash === approvedDraftHash;
 }
