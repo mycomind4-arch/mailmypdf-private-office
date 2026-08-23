@@ -8,10 +8,21 @@ vi.mock("@/platform/mailmypdf-provider", () => ({
   },
 }));
 
-import { submitApprovedMatter, _resetIdempotencyCache } from "./fulfillment";
+// Mock the Supabase mailing intent repository singleton
+vi.mock("@/services/supabase-mailing-intent-repository", () => ({
+  supabaseMailingIntentRepository: {
+    claim: vi.fn(),
+    markSubmitted: vi.fn(),
+    markFailed: vi.fn(),
+  },
+}));
+
+import { submitApprovedMatter } from "./fulfillment";
 import type { MatterAnalysis } from "@/domain/gold-standard";
 import type { MailingRecipient, MailingMethod } from "@/domain/mailing";
 import { mailMyPDFProvider } from "@/platform/mailmypdf-provider";
+import { supabaseMailingIntentRepository } from "@/services/supabase-mailing-intent-repository";
+import { MailingIntentConflictError } from "@/domain/mailing-intent-repository";
 
 const recipient: MailingRecipient = {
   name: "ABC Construction",
@@ -22,6 +33,7 @@ const recipient: MailingRecipient = {
 };
 
 const draftHash = "a1b2c3d4e5f6";
+const draftContent = "[DRAFT] Test letter content";
 
 function cleanAnalysis(overrides: Partial<MatterAnalysis> = {}): MatterAnalysis {
   return {
@@ -48,24 +60,71 @@ function cleanAnalysis(overrides: Partial<MatterAnalysis> = {}): MatterAnalysis 
 }
 
 const validInput = {
+  ownerId: "user-1",
   workflowId: "contractor-dispute",
   documentId: "doc-1",
   analysis: cleanAnalysis(),
   draftValidated: true,
   humanApproved: true,
   recipient,
-  paymentComplete: true,
+  paymentVerified: true,
   stripePaymentId: "pi_test_123",
   mailingMethod: "certified" as MailingMethod,
   proofReady: true,
   idempotencyKey: "matter-1:doc-1",
   currentDraftHash: draftHash,
   approvedDraftHash: draftHash,
+  draftContent,
+  matterId: "matter-1",
 };
+
+function mockClaimNew() {
+  vi.mocked(supabaseMailingIntentRepository.claim).mockResolvedValue({
+    intent: {
+      id: "intent-1",
+      ownerId: "user-1",
+      workflowId: "contractor-dispute",
+      matterId: "matter-1",
+      status: "pending",
+      mailingMethod: "certified",
+      draftHash,
+      providerOrderId: null,
+      trackingNumber: null,
+      idempotencyKey: "matter-1:doc-1",
+      errorMessage: null,
+      createdAt: "2026-08-20T00:00:00.000Z",
+      updatedAt: "2026-08-20T00:00:00.000Z",
+    },
+    isNew: true,
+  });
+}
+
+function mockClaimExisting(providerOrderId: string) {
+  vi.mocked(supabaseMailingIntentRepository.claim).mockResolvedValue({
+    intent: {
+      id: "intent-1",
+      ownerId: "user-1",
+      workflowId: "contractor-dispute",
+      matterId: "matter-1",
+      status: "submitted",
+      mailingMethod: "certified",
+      draftHash,
+      providerOrderId,
+      trackingNumber: "TRK-CACHED",
+      idempotencyKey: "matter-1:doc-1",
+      errorMessage: null,
+      createdAt: "2026-08-20T00:00:00.000Z",
+      updatedAt: "2026-08-20T00:01:00.000Z",
+    },
+    isNew: false,
+  });
+}
 
 beforeEach(() => {
   vi.clearAllMocks();
-  _resetIdempotencyCache();
+  mockClaimNew();
+  vi.mocked(supabaseMailingIntentRepository.markSubmitted).mockResolvedValue();
+  vi.mocked(supabaseMailingIntentRepository.markFailed).mockResolvedValue();
 });
 
 describe("fulfillment: approval-gated mailing", () => {
@@ -82,12 +141,21 @@ describe("fulfillment: approval-gated mailing", () => {
     const result = await submitApprovedMatter(validInput);
     expect(result.providerOrderId).toBe("comm-1");
     expect(result.status.state).toBe("submitted");
+    // Intent should be marked as submitted
+    expect(supabaseMailingIntentRepository.markSubmitted).toHaveBeenCalledWith(
+      "matter-1:doc-1",
+      "user-1",
+      "comm-1",
+      "TRK-1",
+    );
   });
 
   it("rejects submission when human approval is missing", async () => {
     await expect(
       submitApprovedMatter({ ...validInput, humanApproved: false }),
     ).rejects.toThrow(/prerequisites are incomplete/);
+    // Intent should be marked as failed
+    expect(supabaseMailingIntentRepository.markFailed).toHaveBeenCalled();
   });
 
   it("rejects submission when draft is not validated", async () => {
@@ -132,10 +200,10 @@ describe("fulfillment: approval-gated mailing", () => {
     ).rejects.toThrow(/prerequisites are incomplete/);
   });
 
-  it("rejects submission when payment is not complete", async () => {
+  it("rejects submission when payment is not verified", async () => {
     await expect(
-      submitApprovedMatter({ ...validInput, paymentComplete: false }),
-    ).rejects.toThrow(/prerequisites are incomplete/);
+      submitApprovedMatter({ ...validInput, paymentVerified: false }),
+    ).rejects.toThrow(/server-verified payment/);
   });
 
   it("rejects submission when Stripe payment ID is empty", async () => {
@@ -175,6 +243,12 @@ describe("fulfillment: draft version integrity", () => {
         approvedDraftHash: draftHash,
       }),
     ).rejects.toThrow(/modified after approval/);
+    // Intent should be marked as failed
+    expect(supabaseMailingIntentRepository.markFailed).toHaveBeenCalledWith(
+      "matter-1:doc-1",
+      "user-1",
+      "Draft was modified after approval.",
+    );
   });
 
   it("rejects submission when approvedDraftHash is null", async () => {
@@ -200,27 +274,66 @@ describe("fulfillment: draft version integrity", () => {
   });
 });
 
-describe("fulfillment: idempotency", () => {
-  it("returns the same result for duplicate submission with same key", async () => {
+describe("fulfillment: durable idempotency outbox", () => {
+  it("returns cached result when intent was already submitted (idempotent)", async () => {
+    mockClaimExisting("comm-cached");
+
+    const result = await submitApprovedMatter(validInput);
+
+    expect(result.providerOrderId).toBe("comm-cached");
+    // Provider should NOT be called — cached result returned
+    expect(mailMyPDFProvider.createLetter).not.toHaveBeenCalled();
+    expect(mailMyPDFProvider.getStatus).not.toHaveBeenCalled();
+  });
+
+  it("throws conflict when a pending intent exists (concurrent request)", async () => {
+    vi.mocked(supabaseMailingIntentRepository.claim).mockRejectedValue(
+      new MailingIntentConflictError(),
+    );
+
+    await expect(submitApprovedMatter(validInput)).rejects.toThrow(
+      /already in progress/,
+    );
+    // Provider should NOT be called
+    expect(mailMyPDFProvider.createLetter).not.toHaveBeenCalled();
+  });
+
+  it("retries when a failed intent is reclaimed", async () => {
+    // Simulate: first claim returns failed intent, reclaims it to pending
+    vi.mocked(supabaseMailingIntentRepository.claim).mockResolvedValueOnce({
+      intent: {
+        id: "intent-1",
+        ownerId: "user-1",
+        workflowId: "contractor-dispute",
+        matterId: "matter-1",
+        status: "pending",
+        mailingMethod: "certified",
+        draftHash,
+        providerOrderId: null,
+        trackingNumber: null,
+        idempotencyKey: "matter-1:doc-1",
+        errorMessage: null,
+        createdAt: "2026-08-20T00:00:00.000Z",
+        updatedAt: "2026-08-20T00:00:00.000Z",
+      },
+      isNew: true,
+    });
+
     vi.mocked(mailMyPDFProvider.createLetter).mockResolvedValue({
-      providerOrderId: "comm-idem-1",
+      providerOrderId: "comm-retry",
     });
     vi.mocked(mailMyPDFProvider.getStatus).mockResolvedValue({
       state: "submitted",
-      trackingNumber: "TRK-IDEM",
       updatedAt: "2026-08-20T00:00:00.000Z",
     });
 
-    const first = await submitApprovedMatter(validInput);
-    const second = await submitApprovedMatter(validInput);
-
-    expect(first.providerOrderId).toBe("comm-idem-1");
-    expect(second.providerOrderId).toBe("comm-idem-1");
-    // Provider should only be called once
-    expect(mailMyPDFProvider.createLetter).toHaveBeenCalledTimes(1);
+    const result = await submitApprovedMatter(validInput);
+    expect(result.providerOrderId).toBe("comm-retry");
+    expect(supabaseMailingIntentRepository.markSubmitted).toHaveBeenCalled();
   });
 
   it("allows different submissions with different idempotency keys", async () => {
+    mockClaimNew();
     vi.mocked(mailMyPDFProvider.createLetter)
       .mockResolvedValueOnce({ providerOrderId: "comm-A" })
       .mockResolvedValueOnce({ providerOrderId: "comm-B" });
@@ -230,6 +343,17 @@ describe("fulfillment: idempotency", () => {
     });
 
     const first = await submitApprovedMatter(validInput);
+    vi.clearAllMocks();
+    mockClaimNew();
+    vi.mocked(mailMyPDFProvider.createLetter).mockResolvedValue({
+      providerOrderId: "comm-B",
+    });
+    vi.mocked(mailMyPDFProvider.getStatus).mockResolvedValue({
+      state: "submitted",
+      updatedAt: "2026-08-20T00:00:00.000Z",
+    });
+    vi.mocked(supabaseMailingIntentRepository.markSubmitted).mockResolvedValue();
+
     const second = await submitApprovedMatter({
       ...validInput,
       idempotencyKey: "matter-2:doc-2",
@@ -237,29 +361,11 @@ describe("fulfillment: idempotency", () => {
 
     expect(first.providerOrderId).toBe("comm-A");
     expect(second.providerOrderId).toBe("comm-B");
-    expect(mailMyPDFProvider.createLetter).toHaveBeenCalledTimes(2);
-  });
-
-  it("does not call provider on duplicate after successful submission", async () => {
-    vi.mocked(mailMyPDFProvider.createLetter).mockResolvedValue({
-      providerOrderId: "comm-idem-2",
-    });
-    vi.mocked(mailMyPDFProvider.getStatus).mockResolvedValue({
-      state: "submitted",
-      updatedAt: "2026-08-20T00:00:00.000Z",
-    });
-
-    await submitApprovedMatter(validInput);
-    await submitApprovedMatter(validInput);
-    await submitApprovedMatter(validInput);
-
-    expect(mailMyPDFProvider.createLetter).toHaveBeenCalledTimes(1);
-    expect(mailMyPDFProvider.getStatus).toHaveBeenCalledTimes(1);
   });
 });
 
 describe("fulfillment: provider failure", () => {
-  it("rejects on provider failure", async () => {
+  it("rejects on provider failure and marks intent as failed", async () => {
     vi.mocked(mailMyPDFProvider.createLetter).mockRejectedValue(
       new Error("MailMyPDF API error 500"),
     );
@@ -267,23 +373,43 @@ describe("fulfillment: provider failure", () => {
     await expect(submitApprovedMatter(validInput)).rejects.toThrow(
       /MailMyPDF API error/,
     );
+    // Intent should be marked as failed for retry
+    expect(supabaseMailingIntentRepository.markFailed).toHaveBeenCalledWith(
+      "matter-1:doc-1",
+      "user-1",
+      "MailMyPDF API error 500",
+    );
   });
 
-  it("does not cache the result when provider fails", async () => {
-    vi.mocked(mailMyPDFProvider.createLetter)
-      .mockRejectedValueOnce(new Error("Provider error"))
-      .mockResolvedValueOnce({ providerOrderId: "comm-retry" });
+  it("marks intent as failed on draft hash mismatch (not just rejection)", async () => {
+    await expect(
+      submitApprovedMatter({
+        ...validInput,
+        currentDraftHash: "modified",
+        approvedDraftHash: draftHash,
+      }),
+    ).rejects.toThrow(/modified after approval/);
+    expect(supabaseMailingIntentRepository.markFailed).toHaveBeenCalled();
+  });
+});
+
+describe("fulfillment: payment integrity", () => {
+  it("rejects when paymentVerified is false", async () => {
+    await expect(
+      submitApprovedMatter({ ...validInput, paymentVerified: false }),
+    ).rejects.toThrow(/server-verified payment/);
+  });
+
+  it("accepts when paymentVerified is true with valid Stripe ID", async () => {
+    vi.mocked(mailMyPDFProvider.createLetter).mockResolvedValue({
+      providerOrderId: "comm-pay-ok",
+    });
     vi.mocked(mailMyPDFProvider.getStatus).mockResolvedValue({
       state: "submitted",
       updatedAt: "2026-08-20T00:00:00.000Z",
     });
 
-    // First attempt fails
-    await expect(submitApprovedMatter(validInput)).rejects.toThrow();
-
-    // Retry succeeds (key was not cached because provider failed)
     const result = await submitApprovedMatter(validInput);
-    expect(result.providerOrderId).toBe("comm-retry");
-    expect(mailMyPDFProvider.createLetter).toHaveBeenCalledTimes(2);
+    expect(result.providerOrderId).toBe("comm-pay-ok");
   });
 });

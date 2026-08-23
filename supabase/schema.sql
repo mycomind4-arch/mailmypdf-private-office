@@ -56,7 +56,7 @@ create table if not exists public.private_office_events (
 create index if not exists private_office_events_matter_idx on public.private_office_events(matter_id, created_at desc);
 create index if not exists private_office_events_owner_idx on public.private_office_events(owner_id, created_at desc);
 
--- Private Office mailing intents table
+-- Private Office mailing intents table (durable idempotency outbox)
 create table if not exists public.private_office_mailing_intents (
   id uuid primary key default gen_random_uuid(),
   owner_id text not null,
@@ -64,7 +64,7 @@ create table if not exists public.private_office_mailing_intents (
   matter_id uuid references public.private_office_matters(id) on delete set null,
   stripe_session_id text unique,
   stripe_payment_intent_id text,
-  status text not null default 'pending',
+  status text not null default 'pending' check (status in ('pending','submitted','failed','cancelled')),
   mailing_method text not null,
   draft_content text not null,
   draft_hash text not null,
@@ -90,38 +90,47 @@ alter table public.private_office_evidence enable row level security;
 alter table public.private_office_events enable row level security;
 alter table public.private_office_mailing_intents enable row level security;
 
--- RLS Policies: owner_id = auth.uid()
+-- ─────────────────────────────────────────────────────────────────────────
+-- RLS Policies
+--
+-- SECURITY MODEL: Clients can only READ their own data. All writes go
+-- through server functions that use the service role key (which bypasses
+-- RLS) and enforce domain logic (state machine transitions, approval
+-- integrity, evidence verification, event authenticity).
+--
+-- This prevents a malicious authenticated client from:
+--   • forging approval_granted events via direct REST API inserts
+--   • setting matter status to 'approved' via direct PATCH
+--   • marking evidence as 'verified' without server-side verification
+--   • changing approved_draft_hash to bypass draft version integrity
+--   • inserting mailing intents that bypass the fulfillment gates
+-- ─────────────────────────────────────────────────────────────────────────
+
+-- Matters: client can read only; writes go through server functions
 drop policy if exists private_office_matters_select_own on public.private_office_matters;
 create policy private_office_matters_select_own on public.private_office_matters for select using (auth.uid()::text = owner_id);
 drop policy if exists private_office_matters_insert_own on public.private_office_matters;
-create policy private_office_matters_insert_own on public.private_office_matters for insert with check (auth.uid()::text = owner_id);
 drop policy if exists private_office_matters_update_own on public.private_office_matters;
-create policy private_office_matters_update_own on public.private_office_matters for update using (auth.uid()::text = owner_id) with check (auth.uid()::text = owner_id);
 drop policy if exists private_office_matters_delete_own on public.private_office_matters;
-create policy private_office_matters_delete_own on public.private_office_matters for delete using (auth.uid()::text = owner_id);
 
+-- Evidence: client can read only; writes go through server functions
 drop policy if exists private_office_evidence_select_own on public.private_office_evidence;
 create policy private_office_evidence_select_own on public.private_office_evidence for select using (auth.uid()::text = owner_id);
 drop policy if exists private_office_evidence_insert_own on public.private_office_evidence;
-create policy private_office_evidence_insert_own on public.private_office_evidence for insert with check (auth.uid()::text = owner_id);
 drop policy if exists private_office_evidence_update_own on public.private_office_evidence;
-create policy private_office_evidence_update_own on public.private_office_evidence for update using (auth.uid()::text = owner_id) with check (auth.uid()::text = owner_id);
 drop policy if exists private_office_evidence_delete_own on public.private_office_evidence;
-create policy private_office_evidence_delete_own on public.private_office_evidence for delete using (auth.uid()::text = owner_id);
 
--- Events are insert-only (immutable audit trail) — no update or delete policies
+-- Events: client can read only; inserts go through server functions (service role)
+-- No client-facing insert/update/delete policies — events are server-authored only
 drop policy if exists private_office_events_select_own on public.private_office_events;
 create policy private_office_events_select_own on public.private_office_events for select using (auth.uid()::text = owner_id);
 drop policy if exists private_office_events_insert_own on public.private_office_events;
-create policy private_office_events_insert_own on public.private_office_events for insert with check (auth.uid()::text = owner_id);
--- Explicitly no update or delete policies on events — they are immutable
 
+-- Mailing intents: client can read only; writes go through server functions
 drop policy if exists private_office_mailing_intents_select_own on public.private_office_mailing_intents;
 create policy private_office_mailing_intents_select_own on public.private_office_mailing_intents for select using (auth.uid()::text = owner_id);
 drop policy if exists private_office_mailing_intents_insert_own on public.private_office_mailing_intents;
-create policy private_office_mailing_intents_insert_own on public.private_office_mailing_intents for insert with check (auth.uid()::text = owner_id);
 drop policy if exists private_office_mailing_intents_update_own on public.private_office_mailing_intents;
-create policy private_office_mailing_intents_update_own on public.private_office_mailing_intents for update using (auth.uid()::text = owner_id) with check (auth.uid()::text = owner_id);
 
 -- Updated_at triggers
 create or replace function public.set_private_office_updated_at()

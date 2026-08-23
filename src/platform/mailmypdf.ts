@@ -78,7 +78,32 @@ async function request<T>(
   )
     headers.set("Content-Type", "application/json");
 
-  const response = await fetch(`${baseUrl}${path}`, { ...init, headers });
+  // Timeout: abort the request if the provider does not respond within 30s.
+  // This prevents the fulfillment service from hanging indefinitely on a
+  // slow or unresponsive MailMyPDF API. The caller (fulfillment service)
+  // catches the error and marks the mailing intent as failed for retry.
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+  let response: Response;
+  try {
+    response = await fetch(`${baseUrl}${path}`, {
+      ...init,
+      headers,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new MailMyPDFPlatformError(
+        "MailMyPDF request timed out after 30s",
+        408,
+        "TIMEOUT",
+      );
+    }
+    throw err;
+  }
+  clearTimeout(timeoutId);
   const text = await response.text();
   let payload: unknown = null;
   try {
