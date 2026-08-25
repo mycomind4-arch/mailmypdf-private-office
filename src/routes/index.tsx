@@ -7,6 +7,9 @@ import {
   Stamp,
   Lock,
   Briefcase,
+  FileCheck2,
+  Landmark,
+  ScrollText,
 } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -14,214 +17,175 @@ import { SiteFooter } from "@/components/site-footer";
 export const Route = createFileRoute("/")({ component: HomePage });
 
 const lifecycle = [
-  { n: "01", title: "Prepare", desc: "Organize facts, evidence, and documents into a clear matter record." },
-  { n: "02", title: "Review", desc: "Review a professional draft with source-grounded facts and provenance tracking." },
-  { n: "03", title: "Approve", desc: "Explicit human approval is required before any consequential action." },
-  { n: "04", title: "Deliver", desc: "Certified mail with tracking and proof of delivery — your record that it was received." },
-  { n: "05", title: "Prove", desc: "Permanent proof of mailing, delivery, and correspondence preserved for your records." },
+  ["01", "Prepare", "Facts, documents, and evidence become one controlled matter record."],
+  ["02", "Understand", "Chronology, findings, risks, and open questions are surfaced before drafting."],
+  ["03", "Review", "A source-grounded draft is presented with provenance and version integrity."],
+  ["04", "Approve", "Nothing consequential moves forward without your explicit approval."],
+  ["05", "Prove", "Mailing, delivery, and correspondence records remain part of the matter."],
 ];
 
-const features = [
-  { icon: Briefcase, title: "Matter-centric workflow", desc: "Each matter — dispute, notice, claim — is tracked from intake through proof with a full audit trail." },
-  { icon: Scale, title: "Evidence-grounded drafting", desc: "Drafts are built from your facts and evidence, with clear provenance. Nothing is manufactured." },
-  { icon: ShieldCheck, title: "Approval-gated delivery", desc: "Nothing is mailed without explicit human approval. Consequential actions are protected at every gate." },
-  { icon: Mail, title: "Certified mail with proof", desc: "Physical mail via USPS with tracking and return receipt. Proof of timely delivery preserved permanently." },
-  { icon: Lock, title: "Private & secure", desc: "Every matter is encrypted, owner-scoped, and isolated. No one else can access your correspondence." },
-  { icon: Stamp, title: "Permanent documentation", desc: "Your correspondence, evidence, and delivery proof are documented for future reference or escalation." },
+const capabilities = [
+  [Briefcase, "Matter intelligence", "A single workspace for the facts, evidence, timeline, strategy, correspondence, and actions that define a matter."],
+  [FileCheck2, "Evidence & provenance", "Every important conclusion traces back to supplied material or is clearly identified as generated or externally sourced."],
+  [Scale, "Decision support", "Surface contradictions, missing evidence, timing issues, and risks without pretending to make legal conclusions."],
+  [ShieldCheck, "Human control", "AI can assist analysis and drafting. It cannot approve, pay, authorize, or send on your behalf."],
+  [Mail, "Physical correspondence", "Turn an approved document into professionally fulfilled physical mail through the MailMyPDF boundary."],
+  [Lock, "Private by design", "Owner-scoped matters, controlled writes, audit events, and deliberate authorization gates protect consequential work."],
 ];
 
-const workflowCards = [
-  {
-    title: "Contractor Dispute",
-    description:
-      "Document defective or incomplete work, billing disputes, or breach of agreement with a professional dispute letter.",
-    href: "/workflows/contractor-dispute",
-    family: "Property",
-  },
-  {
-    title: "Property Insurance Claim",
-    description:
-      "Document and pursue a property insurance claim — denied claims, underpayments, disputed scope, or supplemental claims — with evidence, chronology, and professional correspondence.",
-    href: "/workflows/property-insurance-claim",
-    family: "Property",
-  },
-  {
-    title: "Bank & Wire Transfer Dispute",
-    description:
-      "Document a bank or wire transfer dispute — unauthorized wires, mistaken transfers, beneficiary errors, bank refusals, or delayed investigations — with transaction records, chronology, and professional correspondence.",
-    href: "/workflows/bank-wire-dispute",
-    family: "Financial",
-  },
-  {
-    title: "Trust Beneficiary Notice",
-    description:
-      "Document a trust beneficiary matter — request information, accounting, distribution status, or clarification from the trustee — with evidence, chronology, and professional correspondence.",
-    href: "/workflows/trust-beneficiary-notice",
-    family: "Trust & Estate",
-  },
+const domains = [
+  { icon: Landmark, family: "PROPERTY", title: "Property & disputes", copy: "Contractor disputes, insurance claims, property correspondence, and other matters where documentation and timing matter.", href: "/workflows/contractor-dispute" },
+  { icon: Scale, family: "FINANCIAL", title: "Financial matters", copy: "Bank and wire transfer disputes with transaction records, chronology, evidence, and controlled correspondence.", href: "/workflows/bank-wire-dispute" },
+  { icon: ScrollText, family: "TRUST & ESTATE", title: "Trust & estate", copy: "Beneficiary notices and trustee correspondence organized around the documents and facts of the matter.", href: "/workflows/trust-beneficiary-notice" },
 ];
 
-const faqItems = [
-  { q: "Is this legal advice?", a: "No. Private Office is a correspondence preparation and evidence documentation service. It is not a law firm and does not provide legal advice or representation." },
-  { q: "What can I use Private Office for?", a: "High-stakes correspondence: contractor disputes, property insurance claims, bank and wire transfer disputes, trust beneficiary notices, formal records requests, and other matters where professional preparation and proof of delivery matter." },
-  { q: "How does the mailing work?", a: "Your final document is printed, enveloped, and mailed via USPS. Choose first-class, certified, or certified with return receipt for proof of delivery." },
-  { q: "Is my data secure?", a: "All documents are encrypted and owner-scoped. No other user can access your matters, evidence, or delivery records. You can request deletion at any time." },
-  { q: "Can I escalate a matter?", a: "Each workflow is designed with clean extension points for follow-up notices, demand letters, insurance claims, or legal escalation when needed." },
+const faqs = [
+  ["What is Private Office?", "Private Office is a matter-centric correspondence and documentation environment for consequential personal and professional affairs. It organizes facts, evidence, analysis, drafting, approval, fulfillment, and proof in one controlled record."],
+  ["Does Private Office provide legal advice?", "No. Private Office is not a law firm and does not provide legal advice or representation. It helps organize information and prepare correspondence while keeping consequential decisions under human control."],
+  ["Can AI make decisions for me?", "No. AI is advisory. It may help analyze supplied information or improve a draft, but it cannot authorize mailing, approve payment, replace human approval, or silently overwrite user facts."],
+  ["What happens after I approve a document?", "The approved version is preserved with its integrity information and can move through the fulfillment gates to physical mailing. Delivery and correspondence records become part of the matter record."],
 ];
 
 function HomePage() {
   return (
-    <main>
+    <main className="po-site">
       <SiteHeader variant="transparent" />
 
-      {/* Hero */}
-      <section
-        className="relative overflow-hidden"
-        style={{ background: "linear-gradient(135deg, #312e81 0%, #4338ca 50%, #1e1b4b 100%)" }}
-      >
-        <div className="container relative py-20 md:py-28">
-          <div className="max-w-2xl">
-            <div
-              className="badge badge-gold mb-5"
-              style={{ background: "rgba(251,191,36,.15)", color: "#fde047" }}
-            >
-              Premium correspondence
-            </div>
-            <h1
-              className="text-4xl font-bold leading-tight text-white md:text-5xl lg:text-6xl"
-              style={{ fontFamily: "var(--font-serif)" }}
-            >
-              High-stakes correspondence. Professionally prepared. Provably delivered.
+      <section className="po-hero">
+        <div className="po-orb po-orb-one" />
+        <div className="po-orb po-orb-two" />
+        <div className="container relative z-10 py-24 md:py-32">
+          <div className="max-w-4xl">
+            <div className="po-kicker"><span /> PRIVATE OFFICE <span /></div>
+            <h1 className="po-display mt-7">
+              Private matters.<br />Handled with <em>precision.</em>
             </h1>
-            <p className="mt-6 max-w-xl text-lg leading-8 text-white/70">
-              Private Office helps you prepare, review, send, and document your most important correspondence —
-              with evidence organization, approval gates, certified mail, and permanent proof of delivery.
+            <p className="po-hero-copy mt-7 max-w-2xl">
+              A private operating environment for consequential correspondence — bringing your facts, evidence, chronology, strategy, drafting, approval, and proof into one controlled matter record.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/workflows/contractor-dispute" className="btn-gold text-base">
-                Start a Matter <ArrowRight size={18} />
+            <div className="mt-9 flex flex-wrap gap-4">
+              <Link to="/workflows/contractor-dispute" className="po-button po-button-gold">
+                Open a Private Matter <ArrowRight size={17} />
               </Link>
-              <a
-                href="#how-it-works"
-                className="inline-flex items-center gap-2 rounded-xl border border-white/20 px-6 py-3.5 font-semibold text-white transition hover:bg-white/10"
-              >
-                How it works
-              </a>
+              <a href="#system" className="po-button po-button-quiet">Explore the system</a>
             </div>
-            <p className="mt-5 text-sm text-white/50">
-              Not a law firm. Not legal advice. You remain in control of the facts and final document.
-            </p>
+            <div className="po-trust-line mt-8">
+              <span><Lock size={14} /> Owner-scoped</span>
+              <span><ShieldCheck size={14} /> Human approval</span>
+              <span><Stamp size={14} /> Proof preserved</span>
+            </div>
           </div>
         </div>
+        <div className="po-hero-bottom" />
       </section>
 
-      {/* How it works */}
-      <section id="how-it-works" className="border-b border-warm-border bg-cream py-20 md:py-28">
+      <section id="system" className="po-section po-section-dark">
         <div className="container">
-          <div className="mx-auto max-w-2xl text-center">
-            <div className="eyebrow">THE LIFECYCLE</div>
-            <h2
-              className="mt-3 text-3xl font-bold text-indigo-800 md:text-4xl"
-              style={{ fontFamily: "var(--font-serif)" }}
-            >
-              Prepare → Review → Approve → Deliver → Prove
-            </h2>
-            <p className="mt-4 text-lg leading-8 text-slate-500">
-              Every matter follows a documented lifecycle with approval gates, evidence tracking, and permanent proof.
+          <div className="grid gap-14 lg:grid-cols-[.8fr_1.2fr] lg:items-end">
+            <div>
+              <div className="po-section-label">THE PRIVATE OFFICE</div>
+              <h2 className="po-heading mt-4">More than a letter.<br /><span>A complete matter record.</span></h2>
+            </div>
+            <p className="po-muted max-w-xl text-lg leading-8">
+              Private Office is built around the matter, not the document. The correspondence is only one outcome of a deeper process of organizing facts, understanding evidence, making decisions, and preserving what happened.
             </p>
           </div>
-          <div className="mt-16 grid gap-8 md:grid-cols-5">
-            {lifecycle.map((step) => (
-              <div key={step.n} className="text-center">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-lg font-bold text-indigo-700">
-                  {step.n}
-                </div>
-                <h3 className="mt-4 text-lg font-semibold text-indigo-800">{step.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-500">{step.desc}</p>
+
+          <div className="mt-16 grid gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10 md:grid-cols-5">
+            {lifecycle.map(([n, title, copy]) => (
+              <div key={n} className="po-lifecycle">
+                <div className="po-number">{n}</div>
+                <h3>{title}</h3>
+                <p>{copy}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section className="py-20 md:py-28">
+      <section className="po-section po-section-slate">
         <div className="container">
-          <div className="mx-auto max-w-2xl text-center">
-            <div className="eyebrow">CAPABILITIES</div>
-            <h2
-              className="mt-3 text-3xl font-bold text-indigo-800 md:text-4xl"
-              style={{ fontFamily: "var(--font-serif)" }}
-            >
-              Built for matters where the stakes are real
-            </h2>
+          <div className="po-section-label">THE OPERATING SYSTEM</div>
+          <div className="mt-4 flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+            <h2 className="po-heading max-w-3xl">Quietly powerful.<br /><span>Deliberately controlled.</span></h2>
+            <p className="po-muted max-w-md leading-7">The system is designed for matters where mistakes, missing records, or an unverified statement can have real consequences.</p>
           </div>
-          <div className="mt-16 grid gap-8 md:grid-cols-2">
-            {features.map((feature) => (
-              <div key={feature.title} className="card p-6">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50">
-                  <feature.icon size={24} className="text-indigo-700" />
-                </div>
-                <h3 className="mt-4 text-lg font-semibold text-indigo-800">{feature.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-500">{feature.desc}</p>
+          <div className="mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {capabilities.map(([Icon, title, copy]) => (
+              <div key={title as string} className="po-capability">
+                <div className="po-icon"><Icon size={19} /></div>
+                <h3>{title as string}</h3>
+                <p>{copy as string}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Workflows */}
-      <section id="workflows" className="border-y border-warm-border bg-cream py-20 md:py-28">
+      <section className="po-section po-section-paper">
         <div className="container">
-          <div className="mx-auto max-w-2xl text-center">
-            <div className="eyebrow">AVAILABLE WORKFLOWS</div>
-            <h2
-              className="mt-3 text-3xl font-bold text-indigo-800 md:text-4xl"
-              style={{ fontFamily: "var(--font-serif)" }}
-            >
-              Start with the matter that matters to you
-            </h2>
-            <p className="mt-4 text-lg leading-8 text-slate-500">
-              Each workflow is a real, executable Gold Standard process — not a template.
-            </p>
-          </div>
-          <div className="mt-16 grid gap-8 md:grid-cols-4">
-            {workflowCards.map((wf) => (
-              <Link key={wf.title} to={wf.href as "/workflows/contractor-dispute" | "/workflows/property-insurance-claim" | "/workflows/bank-wire-dispute" | "/workflows/trust-beneficiary-notice"} className="card group p-6 transition hover:border-indigo-300 hover:shadow-lg">
+          <div className="po-section-label po-section-label-light">MATTER DOMAINS</div>
+          <h2 className="po-heading po-heading-light mt-4">Begin with the situation.<br /><span>Build from there.</span></h2>
+          <div className="mt-14 grid gap-5 lg:grid-cols-3">
+            {domains.map(({ icon: Icon, family, title, copy, href }) => (
+              <Link key={title} to={href} className="po-domain group">
                 <div className="flex items-center justify-between">
-                  <span className="badge badge-gold">{wf.family}</span>
-                  <ArrowRight size={18} className="text-slate-300 transition group-hover:text-indigo-600" />
+                  <div className="po-domain-icon"><Icon size={18} /></div>
+                  <ArrowRight size={18} className="text-white/30 transition group-hover:translate-x-1 group-hover:text-gold-400" />
                 </div>
-                <h3 className="mt-4 text-xl font-bold text-indigo-800" style={{ fontFamily: "var(--font-serif)" }}>
-                  {wf.title}
-                </h3>
-                <p className="mt-2 text-sm leading-6 text-slate-500">{wf.description}</p>
+                <div className="po-domain-family">{family}</div>
+                <h3>{title}</h3>
+                <p>{copy}</p>
               </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* FAQ */}
-      <section className="py-20 md:py-28">
-        <div className="container max-w-3xl">
-          <div className="text-center">
-            <div className="eyebrow">FAQ</div>
-            <h2
-              className="mt-3 text-3xl font-bold text-indigo-800"
-              style={{ fontFamily: "var(--font-serif)" }}
-            >
-              Common questions
-            </h2>
+      <section className="po-section po-section-dark">
+        <div className="container">
+          <div className="grid gap-12 lg:grid-cols-[1fr_.9fr] lg:items-center">
+            <div>
+              <div className="po-section-label">A DIFFERENT KIND OF AI</div>
+              <h2 className="po-heading mt-4">Intelligence without surrendering control.</h2>
+              <p className="po-muted mt-6 max-w-xl text-lg leading-8">
+                Private Office uses multi-LLM assistance as an advisory layer. The deterministic workflow remains in charge. Your facts remain yours. Conflicts are surfaced. Provenance is retained. Consequential actions stay behind human gates.
+              </p>
+            </div>
+            <div className="po-integrity">
+              <div><span>AI</span><strong>ADVISORY</strong></div>
+              <div><span>FACTS</span><strong>USER CONTROLLED</strong></div>
+              <div><span>APPROVAL</span><strong>HUMAN REQUIRED</strong></div>
+              <div><span>FULFILLMENT</span><strong>GATED</strong></div>
+              <div><span>PROOF</span><strong>PRESERVED</strong></div>
+            </div>
           </div>
-          <div className="mt-12 space-y-4">
-            {faqItems.map((item) => (
-              <div key={item.q} className="card p-6">
-                <h3 className="font-semibold text-indigo-800">{item.q}</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-500">{item.a}</p>
-              </div>
+        </div>
+      </section>
+
+      <section className="po-section po-section-slate">
+        <div className="container max-w-4xl">
+          <div className="text-center">
+            <div className="po-section-label">QUESTIONS</div>
+            <h2 className="po-heading mt-4">A few things worth knowing.</h2>
+          </div>
+          <div className="mt-12 divide-y divide-white/10 border-y border-white/10">
+            {faqs.map(([q, a]) => (
+              <details key={q} className="po-faq group">
+                <summary>{q}<span>+</span></summary>
+                <p>{a}</p>
+              </details>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="po-final-cta">
+        <div className="container py-24 text-center md:py-32">
+          <div className="po-section-label">PRIVATE OFFICE</div>
+          <h2 className="po-display mt-5">When the matter matters,<br /><em>keep a record.</em></h2>
+          <p className="po-muted mx-auto mt-6 max-w-xl text-lg leading-8">Organize the facts. Understand the evidence. Approve the correspondence. Preserve the proof.</p>
+          <Link to="/workflows/contractor-dispute" className="po-button po-button-gold mt-9">Open a Private Matter <ArrowRight size={17} /></Link>
         </div>
       </section>
 
