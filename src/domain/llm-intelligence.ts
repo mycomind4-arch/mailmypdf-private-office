@@ -59,6 +59,7 @@ import {
   type ReconciledTimelineEvent,
 } from "@/platform/llm-reconciliation";
 import { MODE_STRATEGIES } from "@/platform/llm-types";
+import { getLLMProvenanceRepository } from "@/services/supabase-llm-provenance-repository";
 
 // ── Intelligence Enrichment Input ────────────────────────────────────────
 
@@ -414,7 +415,18 @@ export async function enrichWithLLMIntelligence(
   const parsed = parseStructuredOutput(llmContent, llmAnalysisResultSchema);
 
   if (!parsed) {
-    // Malformed output — return base analysis unchanged
+    // Malformed output — record rejection and return base analysis unchanged
+    try {
+      getLLMProvenanceRepository().record(
+        provenance,
+        input.matterId ?? input.workflowId,
+        "rejected",
+        "LLM output failed schema validation",
+      );
+    } catch {
+      // Never break the workflow on provenance errors
+    }
+
     return {
       analysis: input.baseAnalysis,
       enriched: false,
@@ -546,6 +558,17 @@ export async function enrichWithLLMIntelligence(
       fallbackChain: provenance.fallbackChain,
     },
   };
+
+  // Persist provenance to database (fire-and-forget, never blocks workflow)
+  try {
+    getLLMProvenanceRepository().record(
+      provenance,
+      input.matterId ?? input.workflowId,
+      "accepted",
+    );
+  } catch {
+    // Provenance recording must never break the workflow
+  }
 
   return {
     analysis: enrichedAnalysis,
