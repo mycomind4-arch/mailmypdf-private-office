@@ -6,7 +6,6 @@ import {
   createRootRouteWithContext,
   Link,
 } from "@tanstack/react-router";
-import { FileWarning } from "lucide-react";
 import { type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { SiteHeader } from "@/components/site-header";
@@ -28,7 +27,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Private Office provides professional correspondence preparation, evidence organization, certified mailing, and proof of delivery for high-stakes matters. Part of the MailMyPDF ecosystem.",
       },
       { name: "robots", content: "index,follow" },
-      { name: "theme-color", content: "#4338ca" },
+      { name: "theme-color", content: "#1E3A5F" },
       {
         property: "og:title",
         content: "Private Office — High-stakes correspondence, professionally prepared",
@@ -46,7 +45,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content: "Private Office — High-stakes correspondence",
       },
     ],
-    links: [{ rel: "stylesheet", href: appCss }],
+    links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap",
+      },
+    ],
   }),
   notFoundComponent: NotFoundPage,
   shellComponent: RootShell,
@@ -80,31 +87,23 @@ function RootComponent() {
 
 function NotFoundPage() {
   return (
-    <main className="min-h-screen bg-cream">
+    <main className="min-h-screen bg-ivory">
       <SiteHeader />
-      <section className="py-20 md:py-32">
+      <section className="py-24 md:py-32">
         <div className="container max-w-lg text-center">
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-indigo-50">
-            <FileWarning size={36} className="text-indigo-400" />
-          </div>
-          <h1
-            className="mt-8 text-6xl font-bold text-indigo-700"
-            style={{ fontFamily: "var(--font-serif)" }}
-          >
-            404
-          </h1>
-          <h2 className="mt-2 text-xl font-semibold text-indigo-600">
+          <div className="font-mono text-xs text-stone tracking-widest uppercase">404</div>
+          <h1 className="mt-6 text-5xl md:text-6xl text-charcoal">
             This page is not available
-          </h2>
-          <p className="mt-3 text-sm text-slate-400">
+          </h1>
+          <p className="mt-4 text-stone text-lg leading-relaxed">
             The page you're looking for doesn't exist or has moved.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link to="/" className="btn-primary">
               Back to home
             </Link>
-            <Link to="/workflows/contractor-dispute" className="btn-gold">
-              Start a Matter
+            <Link to="/workflows" className="btn-outline">
+              Explore Workflows
             </Link>
           </div>
         </div>

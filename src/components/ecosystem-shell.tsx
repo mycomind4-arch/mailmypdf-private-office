@@ -564,7 +564,7 @@ function MobileNav({ config, onClose }: { config: EcosystemShellConfig; onClose:
 
 /* ── Shared Logo ─────────────────────────────────────────────────────────── */
 
-export function ShellLogo({ theme }: { theme?: "default" | "private-office" }) {
+export function ShellLogo({ theme: _theme }: { theme?: "default" | "private-office" }) {
   return (
     <span
       aria-hidden

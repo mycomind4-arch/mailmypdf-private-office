@@ -2,42 +2,58 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRight,
   ShieldCheck,
-  Scale,
-  Mail,
-  Stamp,
   Lock,
-  Briefcase,
+  Stamp,
   FileCheck2,
+  Eye,
+  Send,
+  FolderOpen,
+  Search,
+  PenLine,
+  
+  Briefcase,
+  Scale,
   Landmark,
   ScrollText,
+  Building2,
+  Home,
 } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { heroImage, abstractBackground } from "@/lib/workflow-images";
+import { workflows } from "@/domain/workflows";
+import { workflowProfiles } from "@/domain/workflow-profiles";
 
 export const Route = createFileRoute("/")({ component: HomePage });
 
-const lifecycle = [
-  ["01", "Prepare", "Facts, documents, and evidence become one controlled matter record."],
-  ["02", "Understand", "Chronology, findings, risks, and open questions are surfaced before drafting."],
-  ["03", "Review", "A source-grounded draft is presented with provenance and version integrity."],
-  ["04", "Approve", "Nothing consequential moves forward without your explicit approval."],
-  ["05", "Prove", "Mailing, delivery, and correspondence records remain part of the matter."],
+const processSteps = [
+  { num: "01", icon: FolderOpen, title: "Organize", desc: "Gather documents, state the facts, and define the objective for your matter." },
+  { num: "02", icon: Search, title: "Understand", desc: "The system surfaces chronology, findings, discrepancies, and open questions for your review." },
+  { num: "03", icon: Eye, title: "Review", desc: "A source-grounded draft is presented with provenance and version integrity for your inspection." },
+  { num: "04", icon: PenLine, title: "Approve", desc: "Nothing consequential moves forward without your explicit approval of the exact draft." },
+  { num: "05", icon: Send, title: "Send & Prove", desc: "Mailing, delivery, and correspondence records become a permanent part of the matter." },
 ];
 
-const capabilities = [
-  [Briefcase, "Matter intelligence", "A single workspace for the facts, evidence, timeline, strategy, correspondence, and actions that define a matter."],
-  [FileCheck2, "Evidence & provenance", "Every important conclusion traces back to supplied material or is clearly identified as generated or externally sourced."],
-  [Scale, "Decision support", "Surface contradictions, missing evidence, timing issues, and risks without pretending to make legal conclusions."],
-  [ShieldCheck, "Human control", "AI can assist analysis and drafting. It cannot approve, pay, authorize, or send on your behalf."],
-  [Mail, "Physical correspondence", "Turn an approved document into professionally fulfilled physical mail through the MailMyPDF boundary."],
-  [Lock, "Private by design", "Owner-scoped matters, controlled writes, audit events, and deliberate authorization gates protect consequential work."],
+const trustItems = [
+  { icon: Lock, label: "Private by design" },
+  { icon: FileCheck2, label: "Evidence-first workflow" },
+  { icon: ShieldCheck, label: "Human approval before mailing" },
+  { icon: Stamp, label: "Proof of delivery" },
 ];
 
-const domains = [
-  { icon: Landmark, family: "PROPERTY", title: "Property & disputes", copy: "Contractor disputes, insurance claims, property correspondence, and other matters where documentation and timing matter.", href: "/workflows/contractor-dispute" },
-  { icon: Scale, family: "FINANCIAL", title: "Financial matters", copy: "Bank and wire transfer disputes with transaction records, chronology, evidence, and controlled correspondence.", href: "/workflows/bank-wire-dispute" },
-  { icon: ScrollText, family: "TRUST & ESTATE", title: "Trust & estate", copy: "Beneficiary notices and trustee correspondence organized around the documents and facts of the matter.", href: "/workflows/trust-beneficiary-notice" },
+const pillars = [
+  { icon: FileCheck2, title: "Evidence-first", desc: "Your correspondence is built from documented facts and supporting evidence. Every assertion traces back to a source or is clearly identified as generated." },
+  { icon: ShieldCheck, title: "Human review", desc: "Important actions remain under your control. AI can assist analysis and drafting — it cannot approve, pay, authorize, or send on your behalf." },
+  { icon: Stamp, title: "Proof", desc: "Mailing creates a durable record with tracking and proof of delivery. Your matter retains a complete, auditable history from first fact to final proof." },
 ];
+
+const workflowIcons: Record<string, typeof Briefcase> = {
+  "contractor-dispute": Building2,
+  "property-insurance-claim": Home,
+  "bank-wire-dispute": Landmark,
+  "trust-beneficiary-notice": ScrollText,
+  "security-deposit-dispute": Scale,
+};
 
 const faqs = [
   ["What is Private Office?", "Private Office is a matter-centric correspondence and documentation environment for consequential personal and professional affairs. It organizes facts, evidence, analysis, drafting, approval, fulfillment, and proof in one controlled record."],
@@ -48,144 +64,227 @@ const faqs = [
 
 function HomePage() {
   return (
-    <main className="po-site">
-      <SiteHeader variant="transparent" />
+    <main className="bg-ivory min-h-screen">
+      <SiteHeader />
 
-      <section className="po-hero">
-        <div className="po-orb po-orb-one" />
-        <div className="po-orb po-orb-two" />
-        <div className="container relative z-10 py-24 md:py-32">
-          <div className="max-w-4xl">
-            <div className="po-kicker"><span /> PRIVATE OFFICE <span /></div>
-            <h1 className="po-display mt-7">
-              Private matters.<br />Handled with <em>precision.</em>
-            </h1>
-            <p className="po-hero-copy mt-7 max-w-2xl">
-              A private operating environment for consequential correspondence — bringing your facts, evidence, chronology, strategy, drafting, approval, and proof into one controlled matter record.
-            </p>
-            <div className="mt-9 flex flex-wrap gap-4">
-              <Link to="/workflows/contractor-dispute" className="po-button po-button-gold">
-                Open a Private Matter <ArrowRight size={17} />
-              </Link>
-              <a href="#system" className="po-button po-button-quiet">Explore the system</a>
-            </div>
-            <div className="po-trust-line mt-8">
-              <span><Lock size={14} /> Owner-scoped</span>
-              <span><ShieldCheck size={14} /> Human approval</span>
-              <span><Stamp size={14} /> Proof preserved</span>
-            </div>
-          </div>
-        </div>
-        <div className="po-hero-bottom" />
-      </section>
-
-      <section id="system" className="po-section po-section-dark">
-        <div className="container">
-          <div className="grid gap-14 lg:grid-cols-[.8fr_1.2fr] lg:items-end">
+      {/* ── Hero ────────────────────────────────────────── */}
+      <section className="relative overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${abstractBackground})`, opacity: 0.04 }}
+          aria-hidden
+        />
+        <div className="container relative z-10 py-20 md:py-28 lg:py-32">
+          <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_1fr] lg:gap-20">
+            {/* Left: Headline */}
             <div>
-              <div className="po-section-label">THE PRIVATE OFFICE</div>
-              <h2 className="po-heading mt-4">More than a letter.<br /><span>A complete matter record.</span></h2>
+              <div className="section-kicker">Private Office</div>
+              <h1 className="mt-6 text-5xl leading-[1.02] tracking-tight text-charcoal md:text-6xl lg:text-[4.5rem]">
+                Turn complicated matters into a <em className="italic text-navy">documented</em> course of action.
+              </h1>
+              <p className="mt-6 max-w-lg text-lg leading-relaxed text-stone">
+                Organize documents, understand the matter, identify evidence, prepare professional correspondence, obtain human approval, and send with proof.
+              </p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link to="/workflows" className="btn-primary">
+                  Start a Matter <ArrowRight size={16} />
+                </Link>
+                <Link to="/how-it-works" className="btn-outline">
+                  How It Works
+                </Link>
+              </div>
             </div>
-            <p className="po-muted max-w-xl text-lg leading-8">
-              Private Office is built around the matter, not the document. The correspondence is only one outcome of a deeper process of organizing facts, understanding evidence, making decisions, and preserving what happened.
-            </p>
+
+            {/* Right: Hero image */}
+            <div className="relative hidden lg:block">
+              <div className="aspect-[4/3] overflow-hidden rounded-lg shadow-elevated">
+                <img
+                  src={heroImage}
+                  alt="A secluded modern private office at dusk with neatly arranged documents"
+                  className="h-full w-full object-cover"
+                  loading="eager"
+                />
+              </div>
+            </div>
           </div>
 
-          <div className="mt-16 grid gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10 md:grid-cols-5">
-            {lifecycle.map(([n, title, copy]) => (
-              <div key={n} className="po-lifecycle">
-                <div className="po-number">{n}</div>
-                <h3>{title}</h3>
-                <p>{copy}</p>
+          {/* Trust strip */}
+          <div className="mt-16 flex flex-wrap gap-x-8 gap-y-4 border-t border-rule pt-8">
+            {trustItems.map(({ icon: Icon, label }) => (
+              <div key={label} className="flex items-center gap-2.5">
+                <Icon size={16} className="text-brass" strokeWidth={1.5} />
+                <span className="text-sm font-medium text-charcoal-soft">{label}</span>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="po-section po-section-slate">
+      {/* ── How It Works ────────────────────────────────── */}
+      <section className="bg-ivory-deep py-20 md:py-28">
         <div className="container">
-          <div className="po-section-label">THE OPERATING SYSTEM</div>
-          <div className="mt-4 flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
-            <h2 className="po-heading max-w-3xl">Quietly powerful.<br /><span>Deliberately controlled.</span></h2>
-            <p className="po-muted max-w-md leading-7">The system is designed for matters where mistakes, missing records, or an unverified statement can have real consequences.</p>
-          </div>
-          <div className="mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {capabilities.map(([Icon, title, copy]) => (
-              <div key={title as string} className="po-capability">
-                <div className="po-icon"><Icon size={19} /></div>
-                <h3>{title as string}</h3>
-                <p>{copy as string}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+          <div className="section-kicker">How Private Office Works</div>
+          <h2 className="mt-4 max-w-2xl text-4xl leading-tight text-charcoal md:text-5xl">
+            A disciplined process, not a black box.
+          </h2>
 
-      <section className="po-section po-section-paper">
-        <div className="container">
-          <div className="po-section-label po-section-label-light">MATTER DOMAINS</div>
-          <h2 className="po-heading po-heading-light mt-4">Begin with the situation.<br /><span>Build from there.</span></h2>
-          <div className="mt-14 grid gap-5 lg:grid-cols-3">
-            {domains.map(({ icon: Icon, family, title, copy, href }) => (
-              <Link key={title} to={href} className="po-domain group">
-                <div className="flex items-center justify-between">
-                  <div className="po-domain-icon"><Icon size={18} /></div>
-                  <ArrowRight size={18} className="text-white/30 transition group-hover:translate-x-1 group-hover:text-gold-400" />
+          <div className="mt-16 grid gap-8 md:grid-cols-5 md:gap-4">
+            {processSteps.map((step, i) => (
+              <div key={step.num} className="relative flex flex-col items-center text-center">
+                {i < processSteps.length - 1 && (
+                  <div className="absolute left-[60%] right-[-40%] top-7 hidden h-px bg-rule md:block" aria-hidden />
+                )}
+                <div className="flex h-14 w-14 items-center justify-center rounded-full border border-rule bg-paper shadow-card">
+                  <step.icon size={22} className="text-navy" strokeWidth={1.5} />
                 </div>
-                <div className="po-domain-family">{family}</div>
-                <h3>{title}</h3>
-                <p>{copy}</p>
-              </Link>
+                <div className="mt-5 font-mono text-xs tracking-widest text-brass">{step.num}</div>
+                <h3 className="mt-2 text-xl text-charcoal">{step.title}</h3>
+                <p className="mt-2 max-w-[14rem] text-sm leading-relaxed text-stone">{step.desc}</p>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="po-section po-section-dark">
+      {/* ── Why Private Office ──────────────────────────── */}
+      <section className="py-20 md:py-28">
         <div className="container">
-          <div className="grid gap-12 lg:grid-cols-[1fr_.9fr] lg:items-center">
+          <div className="section-kicker">Why Private Office</div>
+          <h2 className="mt-4 max-w-2xl text-4xl leading-tight text-charcoal md:text-5xl">
+            Built for matters where the record matters.
+          </h2>
+
+          <div className="mt-14 grid gap-px overflow-hidden rounded-xl border border-rule bg-rule md:grid-cols-3">
+            {pillars.map(({ icon: Icon, title, desc }) => (
+              <div key={title} className="bg-paper p-8">
+                <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-rule bg-ivory">
+                  <Icon size={20} className="text-navy" strokeWidth={1.5} />
+                </div>
+                <h3 className="mt-6 text-2xl text-charcoal">{title}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-stone">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Workflow Directory Preview ─────────────────── */}
+      <section className="bg-ivory-deep py-20 md:py-28">
+        <div className="container">
+          <div className="flex items-end justify-between gap-6">
             <div>
-              <div className="po-section-label">A DIFFERENT KIND OF AI</div>
-              <h2 className="po-heading mt-4">Intelligence without surrendering control.</h2>
-              <p className="po-muted mt-6 max-w-xl text-lg leading-8">
+              <div className="section-kicker">Matter Domains</div>
+              <h2 className="mt-4 text-4xl leading-tight text-charcoal md:text-5xl">
+                Begin with the situation.
+              </h2>
+            </div>
+            <Link to="/workflows" className="hidden shrink-0 text-sm font-medium text-navy transition-colors hover:text-brass md:inline-flex md:items-center md:gap-1">
+              All workflows <ArrowRight size={15} />
+            </Link>
+          </div>
+
+          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {Object.values(workflows).map((wf) => {
+              const profile = workflowProfiles[wf.id];
+              const Icon = workflowIcons[wf.id] ?? Briefcase;
+              return (
+                <Link
+                  key={wf.id}
+                  to={`/workflows/${wf.id}`}
+                  className="group flex flex-col rounded-xl border border-rule bg-paper p-6 transition-all duration-200 hover:border-navy/30 hover:shadow-premium"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-rule bg-ivory">
+                      <Icon size={18} className="text-navy" strokeWidth={1.5} />
+                    </div>
+                    <ArrowRight size={18} className="text-stone-light transition-all group-hover:translate-x-1 group-hover:text-navy" />
+                  </div>
+                  <div className="mt-5 font-mono text-[10px] uppercase tracking-widest text-brass">
+                    {profile?.family ?? "Private Matter"}
+                  </div>
+                  <h3 className="mt-2 text-xl text-charcoal">{wf.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-stone">{profile?.outcome ?? wf.description}</p>
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className="mt-8 md:hidden">
+            <Link to="/workflows" className="btn-outline">All workflows <ArrowRight size={15} /></Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── AI Assistance ──────────────────────────────── */}
+      <section className="py-20 md:py-28">
+        <div className="container">
+          <div className="grid items-center gap-12 lg:grid-cols-[1fr_.85fr] lg:gap-20">
+            <div>
+              <div className="section-kicker">A Different Kind of AI</div>
+              <h2 className="mt-4 text-4xl leading-tight text-charcoal md:text-5xl">
+                Intelligence without surrendering control.
+              </h2>
+              <p className="mt-6 max-w-xl text-lg leading-relaxed text-stone">
                 Private Office uses multi-LLM assistance as an advisory layer. The deterministic workflow remains in charge. Your facts remain yours. Conflicts are surfaced. Provenance is retained. Consequential actions stay behind human gates.
               </p>
             </div>
-            <div className="po-integrity">
-              <div><span>AI</span><strong>ADVISORY</strong></div>
-              <div><span>FACTS</span><strong>USER CONTROLLED</strong></div>
-              <div><span>APPROVAL</span><strong>HUMAN REQUIRED</strong></div>
-              <div><span>FULFILLMENT</span><strong>GATED</strong></div>
-              <div><span>PROOF</span><strong>PRESERVED</strong></div>
+            <div className="overflow-hidden rounded-xl border border-rule">
+              {[
+                ["AI", "Advisory"],
+                ["Facts", "User controlled"],
+                ["Approval", "Human required"],
+                ["Fulfillment", "Gated"],
+                ["Proof", "Preserved"],
+              ].map(([label, value], i) => (
+                <div
+                  key={label}
+                  className={`flex items-center justify-between px-6 py-4 ${
+                    i < 4 ? "border-b border-rule" : ""
+                  }`}
+                >
+                  <span className="font-mono text-xs uppercase tracking-widest text-stone">{label}</span>
+                  <span className={`font-mono text-xs font-semibold uppercase tracking-widest ${i === 2 ? "text-brass" : "text-charcoal-soft"}`}>
+                    {value}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      <section className="po-section po-section-slate">
-        <div className="container max-w-4xl">
-          <div className="text-center">
-            <div className="po-section-label">QUESTIONS</div>
-            <h2 className="po-heading mt-4">A few things worth knowing.</h2>
-          </div>
-          <div className="mt-12 divide-y divide-white/10 border-y border-white/10">
+      {/* ── FAQ ────────────────────────────────────────── */}
+      <section className="bg-ivory-deep py-20 md:py-28">
+        <div className="container max-w-3xl">
+          <div className="section-kicker">Questions</div>
+          <h2 className="mt-4 text-4xl text-charcoal md:text-5xl">A few things worth knowing.</h2>
+          <div className="mt-10 divide-y divide-rule border-y border-rule">
             {faqs.map(([q, a]) => (
-              <details key={q} className="po-faq group">
-                <summary>{q}<span>+</span></summary>
-                <p>{a}</p>
+              <details key={q} className="group py-5">
+                <summary className="flex cursor-pointer items-center justify-between list-none text-lg text-charcoal">
+                  {q}
+                  <span className="text-stone-light transition-transform duration-200 group-open:rotate-45">+</span>
+                </summary>
+                <p className="mt-3 max-w-2xl text-sm leading-relaxed text-stone">{a}</p>
               </details>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="po-final-cta">
-        <div className="container py-24 text-center md:py-32">
-          <div className="po-section-label">PRIVATE OFFICE</div>
-          <h2 className="po-display mt-5">When the matter matters,<br /><em>keep a record.</em></h2>
-          <p className="po-muted mx-auto mt-6 max-w-xl text-lg leading-8">Organize the facts. Understand the evidence. Approve the correspondence. Preserve the proof.</p>
-          <Link to="/workflows/contractor-dispute" className="po-button po-button-gold mt-9">Open a Private Matter <ArrowRight size={17} /></Link>
+      {/* ── Final CTA ──────────────────────────────────── */}
+      <section className="py-24 md:py-32">
+        <div className="container text-center">
+          <div className="section-kicker">Private Office</div>
+          <h2 className="mx-auto mt-5 max-w-2xl text-5xl leading-tight text-charcoal md:text-6xl">
+            When the matter matters, keep a record.
+          </h2>
+          <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-stone">
+            Organize the facts. Understand the evidence. Approve the correspondence. Preserve the proof.
+          </p>
+          <Link to="/workflows" className="btn-primary mt-9">
+            Start a Matter <ArrowRight size={16} />
+          </Link>
         </div>
       </section>
 

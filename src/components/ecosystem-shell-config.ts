@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/use-auth";
 import type { EcosystemShellConfig } from "./ecosystem-shell";
 
 export function useShellConfig(): EcosystemShellConfig {
-  const { user, loading, signOut } = useAuth() as any;
+  const { user, loading, signOut } = useAuth();
   return {
     brand: "Private Office",
     brandTagline: "A MailMyPDF product",
@@ -19,7 +19,7 @@ export function useShellConfig(): EcosystemShellConfig {
     productsUrl: "/products",
     currentProductSlug: "private-office",
     caseTerm: "Matters",
-    ctaLabel: "Start Now",
+    ctaLabel: "Start a Matter",
     theme: "private-office",
     auth: {
       user: user ? { email: user?.email ?? "", fullName: user?.fullName, role: user?.role } : null,
