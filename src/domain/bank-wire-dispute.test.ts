@@ -34,23 +34,23 @@ const completeFacts: Record<string, string> = {
 };
 
 describe("bank-wire-dispute: workflow registration", () => {
-  it("is registered in the profile registry", () => {
+  it("is registered in the profile registry", async () => {
     expect(profile).toBeDefined();
     expect(profile.id).toBe("bank-wire-dispute");
   });
 
-  it("has gold standard lifecycle", () => {
+  it("has gold standard lifecycle", async () => {
     expect(workflows["bank-wire-dispute"].lifecycle).toBe("gold");
   });
 
-  it("belongs to the Financial family", () => {
+  it("belongs to the Financial family", async () => {
     expect(profile.family).toBe("Financial");
   });
 });
 
 describe("bank-wire-dispute: intake and required facts", () => {
-  it("blocks when required facts are missing", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("blocks when required facts are missing", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "bank-wire-dispute",
       documentId: "doc-1",
       text: "Bank statement text.",
@@ -64,8 +64,8 @@ describe("bank-wire-dispute: intake and required facts", () => {
     expect(requiredBlocking.length).toBe(profile.requiredFacts.length);
   });
 
-  it("blocks when financial institution is missing", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("blocks when financial institution is missing", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "bank-wire-dispute",
       documentId: "doc-1",
       text: "Bank text.",
@@ -76,8 +76,8 @@ describe("bank-wire-dispute: intake and required facts", () => {
     expect(result.errors.some((e) => e.includes("financial institution"))).toBe(true);
   });
 
-  it("blocks when account holder name is missing", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("blocks when account holder name is missing", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "bank-wire-dispute",
       documentId: "doc-1",
       text: "Bank text.",
@@ -88,8 +88,8 @@ describe("bank-wire-dispute: intake and required facts", () => {
     expect(result.errors.some((e) => e.includes("account holder name"))).toBe(true);
   });
 
-  it("blocks when transaction date is missing", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("blocks when transaction date is missing", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "bank-wire-dispute",
       documentId: "doc-1",
       text: "Bank text.",
@@ -100,8 +100,8 @@ describe("bank-wire-dispute: intake and required facts", () => {
     expect(result.errors.some((e) => e.includes("transaction date"))).toBe(true);
   });
 
-  it("blocks when transaction amount is missing", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("blocks when transaction amount is missing", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "bank-wire-dispute",
       documentId: "doc-1",
       text: "Bank text.",
@@ -112,8 +112,8 @@ describe("bank-wire-dispute: intake and required facts", () => {
     expect(result.errors.some((e) => e.includes("transaction amount"))).toBe(true);
   });
 
-  it("blocks when dispute description is missing", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("blocks when dispute description is missing", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "bank-wire-dispute",
       documentId: "doc-1",
       text: "Bank text.",
@@ -124,8 +124,8 @@ describe("bank-wire-dispute: intake and required facts", () => {
     expect(result.errors.some((e) => e.includes("dispute description"))).toBe(true);
   });
 
-  it("blocks when bank response is missing", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("blocks when bank response is missing", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "bank-wire-dispute",
       documentId: "doc-1",
       text: "Bank text.",
@@ -136,8 +136,8 @@ describe("bank-wire-dispute: intake and required facts", () => {
     expect(result.errors.some((e) => e.includes("bank response"))).toBe(true);
   });
 
-  it("blocks when objective is missing", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("blocks when objective is missing", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "bank-wire-dispute",
       documentId: "doc-1",
       text: "Bank text.",
@@ -150,20 +150,20 @@ describe("bank-wire-dispute: intake and required facts", () => {
 });
 
 describe("bank-wire-dispute: privacy and data minimization", () => {
-  it("does not require full account numbers as a required fact", () => {
+  it("does not require full account numbers as a required fact", async () => {
     expect(profile.requiredFacts).not.toContain("account number");
     expect(profile.requiredFacts).not.toContain("full account number");
   });
 
-  it("does not require passwords or PINs", () => {
+  it("does not require passwords or PINs", async () => {
     const allFacts = profile.requiredFacts.join(" ").toLowerCase();
     expect(allFacts).not.toContain("password");
     expect(allFacts).not.toContain("pin");
     expect(allFacts).not.toContain("credential");
   });
 
-  it("workflow accepts masked account references without requiring full numbers", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("workflow accepts masked account references without requiring full numbers", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "bank-wire-dispute",
       documentId: "doc-1",
       text: "Bank text.",
@@ -179,8 +179,8 @@ describe("bank-wire-dispute: privacy and data minimization", () => {
 });
 
 describe("bank-wire-dispute: evidence", () => {
-  it("generates evidence requirements from the profile", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("generates evidence requirements from the profile", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "bank-wire-dispute",
       documentId: "doc-1",
       text: "Bank text.",
@@ -192,8 +192,8 @@ describe("bank-wire-dispute: evidence", () => {
     );
   });
 
-  it("generates evidence items for missing facts when facts are absent", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("generates evidence items for missing facts when facts are absent", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "bank-wire-dispute",
       documentId: "doc-1",
       text: "Bank text.",
@@ -206,8 +206,8 @@ describe("bank-wire-dispute: evidence", () => {
     expect(missingEvidence.length).toBe(profile.requiredFacts.length);
   });
 
-  it("evidence items have correct descriptions from requirement names", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("evidence items have correct descriptions from requirement names", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "bank-wire-dispute",
       documentId: "doc-1",
       text: "Bank text.",
@@ -220,8 +220,8 @@ describe("bank-wire-dispute: evidence", () => {
     expect(evidenceDescriptions).toContain("bank correspondence regarding the dispute");
   });
 
-  it("blocks when evidence is not provided", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("blocks when evidence is not provided", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "bank-wire-dispute",
       documentId: "doc-1",
       text: "Bank text.",
@@ -232,9 +232,9 @@ describe("bank-wire-dispute: evidence", () => {
     expect(result.blocked).toBe(true);
   });
 
-  it("passes blocking gate when all evidence is provided", () => {
+  it("passes blocking gate when all evidence is provided", async () => {
     const evidenceStatuses = buildEvidenceStatuses("provided");
-    const result = runPrivateOfficeWorkflow({
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "bank-wire-dispute",
       documentId: "doc-1",
       text: "Bank text.",
@@ -247,8 +247,8 @@ describe("bank-wire-dispute: evidence", () => {
 });
 
 describe("bank-wire-dispute: timeline and chronology", () => {
-  it("extracts dates from source documents for the timeline", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("extracts dates from source documents for the timeline", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "bank-wire-dispute",
       documentId: "doc-1",
       text: "Wire initiated March 10, 2026. Discovered March 12, 2026. Bank notified March 13, 2026. Bank response dated April 15, 2026.",
@@ -262,8 +262,8 @@ describe("bank-wire-dispute: timeline and chronology", () => {
     expect(dates).toContain("March 12, 2026");
   });
 
-  it("timeline events include source excerpts for provenance", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("timeline events include source excerpts for provenance", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "bank-wire-dispute",
       documentId: "doc-1",
       text: "Bank response dated April 15, 2026 states claim denied.",
@@ -278,8 +278,8 @@ describe("bank-wire-dispute: timeline and chronology", () => {
     expect(timelineEvent?.sourceExcerpt).toBeDefined();
   });
 
-  it("timeline is empty when source has no dates", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("timeline is empty when source has no dates", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "bank-wire-dispute",
       documentId: "doc-1",
       text: "Bank statement with no dates.",
@@ -292,8 +292,8 @@ describe("bank-wire-dispute: timeline and chronology", () => {
 });
 
 describe("bank-wire-dispute: analysis and findings", () => {
-  it("classifies as bank-wire-dispute", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("classifies as bank-wire-dispute", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "bank-wire-dispute",
       documentId: "doc-1",
       text: "Bank text.",
@@ -304,8 +304,8 @@ describe("bank-wire-dispute: analysis and findings", () => {
     expect(result.analysis.classification.type).toBe("bank-wire-dispute");
   });
 
-  it("findings include confirmed facts when all required facts are provided", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("findings include confirmed facts when all required facts are provided", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "bank-wire-dispute",
       documentId: "doc-1",
       text: "Bank text.",
@@ -319,8 +319,8 @@ describe("bank-wire-dispute: analysis and findings", () => {
     expect(confirmed.length).toBeGreaterThan(0);
   });
 
-  it("findings include missing facts when required facts are absent", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("findings include missing facts when required facts are absent", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "bank-wire-dispute",
       documentId: "doc-1",
       text: "Bank text.",
@@ -333,8 +333,8 @@ describe("bank-wire-dispute: analysis and findings", () => {
     expect(missing.length).toBeGreaterThanOrEqual(profile.requiredFacts.length);
   });
 
-  it("risk assessment flags incomplete intake", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("risk assessment flags incomplete intake", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "bank-wire-dispute",
       documentId: "doc-1",
       text: "Bank text.",
@@ -346,8 +346,8 @@ describe("bank-wire-dispute: analysis and findings", () => {
     expect(result.analysis.risks[0].title).toContain("Incomplete intake");
   });
 
-  it("strategy addresses the bank as recipient", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("strategy addresses the bank as recipient", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "bank-wire-dispute",
       documentId: "doc-1",
       text: "Bank text.",
@@ -360,8 +360,8 @@ describe("bank-wire-dispute: analysis and findings", () => {
 });
 
 describe("bank-wire-dispute: draft generation", () => {
-  it("generates a draft with the bank wire dispute subject line", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("generates a draft with the bank wire dispute subject line", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "bank-wire-dispute",
       documentId: "doc-1",
       text: "Bank text.",
@@ -373,8 +373,8 @@ describe("bank-wire-dispute: draft generation", () => {
     expect(result.draft).toContain("[DRAFT — REVIEW BEFORE SENDING]");
   });
 
-  it("draft includes user-provided facts", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("draft includes user-provided facts", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "bank-wire-dispute",
       documentId: "doc-1",
       text: "Bank text.",
@@ -387,8 +387,8 @@ describe("bank-wire-dispute: draft generation", () => {
     expect(result.draft).toContain("$25,000.00");
   });
 
-  it("draft includes the disclaimer", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("draft includes the disclaimer", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "bank-wire-dispute",
       documentId: "doc-1",
       text: "Bank text.",
@@ -400,8 +400,8 @@ describe("bank-wire-dispute: draft generation", () => {
     expect(result.draft).toContain("not a law firm");
   });
 
-  it("draftHash is null in the result (computed by caller)", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("draftHash is null in the result (computed by caller)", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "bank-wire-dispute",
       documentId: "doc-1",
       text: "Bank text.",
@@ -415,8 +415,8 @@ describe("bank-wire-dispute: draft generation", () => {
 });
 
 describe("bank-wire-dispute: approval version integrity", () => {
-  it("blocks when approvedDraftHash is null in consequential state", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("blocks when approvedDraftHash is null in consequential state", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "bank-wire-dispute",
       documentId: "doc-1",
       text: "Bank text.",
@@ -438,15 +438,15 @@ describe("bank-wire-dispute: approval version integrity", () => {
     expect(result.errors.some((e) => e.includes("approval"))).toBe(true);
   });
 
-  it("isApprovalValid rejects when draft was modified after approval", () => {
+  it("isApprovalValid rejects when draft was modified after approval", async () => {
     expect(isApprovalValid("new-hash", "approved-hash")).toBe(false);
   });
 
-  it("isApprovalValid accepts when hashes match", () => {
+  it("isApprovalValid accepts when hashes match", async () => {
     expect(isApprovalValid("same-hash", "same-hash")).toBe(true);
   });
 
-  it("isApprovalValid rejects null hashes", () => {
+  it("isApprovalValid rejects null hashes", async () => {
     expect(isApprovalValid(null, "hash")).toBe(false);
     expect(isApprovalValid("hash", null)).toBe(false);
     expect(isApprovalValid(null, null)).toBe(false);
@@ -454,8 +454,8 @@ describe("bank-wire-dispute: approval version integrity", () => {
 });
 
 describe("bank-wire-dispute: authorization gates", () => {
-  it("canAuthorizeMatterMail fails when analysis has blocking issues", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("canAuthorizeMatterMail fails when analysis has blocking issues", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "bank-wire-dispute",
       documentId: "doc-1",
       text: "Bank text.",
@@ -473,8 +473,8 @@ describe("bank-wire-dispute: authorization gates", () => {
     ).toBe(false);
   });
 
-  it("canAuthorizeMatterMail fails when human approval is missing", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("canAuthorizeMatterMail fails when human approval is missing", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "bank-wire-dispute",
       documentId: "doc-1",
       text: "Bank text.",
@@ -493,8 +493,8 @@ describe("bank-wire-dispute: authorization gates", () => {
     ).toBe(false);
   });
 
-  it("canAuthorizeMatterMail fails when payment is not complete", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("canAuthorizeMatterMail fails when payment is not complete", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "bank-wire-dispute",
       documentId: "doc-1",
       text: "Bank text.",
@@ -513,8 +513,8 @@ describe("bank-wire-dispute: authorization gates", () => {
     ).toBe(false);
   });
 
-  it("canApproveMatter passes when all blocking issues resolved and evidence provided", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("canApproveMatter passes when all blocking issues resolved and evidence provided", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "bank-wire-dispute",
       documentId: "doc-1",
       text: "Bank text.",
@@ -527,7 +527,7 @@ describe("bank-wire-dispute: authorization gates", () => {
 });
 
 describe("bank-wire-dispute: matter lifecycle", () => {
-  it("can create and transition a bank-wire-dispute matter", () => {
+  it("can create and transition a bank-wire-dispute matter", async () => {
     const matter: PrivateOfficeMatter = {
       id: "matter-1",
       ownerId: "user-1",
@@ -561,7 +561,7 @@ describe("bank-wire-dispute: matter lifecycle", () => {
     expect(approved.approvedDraftHash).toBe("hash-abc");
   });
 
-  it("rejects invalid transitions for a bank-wire-dispute matter", () => {
+  it("rejects invalid transitions for a bank-wire-dispute matter", async () => {
     const matter: PrivateOfficeMatter = {
       id: "matter-1",
       ownerId: "user-1",
@@ -587,21 +587,21 @@ describe("bank-wire-dispute: matter lifecycle", () => {
 });
 
 describe("bank-wire-dispute: regression — does not affect other workflows", () => {
-  it("contractor-dispute workflow still works independently", () => {
+  it("contractor-dispute workflow still works independently", async () => {
     const contractorProfile = workflowProfiles["contractor-dispute"];
     expect(contractorProfile.id).toBe("contractor-dispute");
     expect(contractorProfile.requiredFacts).toContain("contractor name");
     expect(contractorProfile.requiredFacts).not.toContain("transaction date");
   });
 
-  it("property-insurance-claim workflow still works independently", () => {
+  it("property-insurance-claim workflow still works independently", async () => {
     const insuranceProfile = workflowProfiles["property-insurance-claim"];
     expect(insuranceProfile.id).toBe("property-insurance-claim");
     expect(insuranceProfile.requiredFacts).toContain("claim number");
     expect(insuranceProfile.requiredFacts).not.toContain("transaction date");
   });
 
-  it("all three workflows use the same Gold Standard stages", () => {
+  it("all three workflows use the same Gold Standard stages", async () => {
     const contractorStages = workflows["contractor-dispute"].goldStandardStages;
     const insuranceStages = workflows["property-insurance-claim"].goldStandardStages;
     const bankStages = workflows["bank-wire-dispute"].goldStandardStages;
@@ -609,7 +609,7 @@ describe("bank-wire-dispute: regression — does not affect other workflows", ()
     expect(insuranceStages).toEqual(bankStages);
   });
 
-  it("all three workflows use the same pipeline archetypes", () => {
+  it("all three workflows use the same pipeline archetypes", async () => {
     expect(workflows["contractor-dispute"].pipelineArchetypes).toEqual(
       workflows["property-insurance-claim"].pipelineArchetypes,
     );
@@ -618,7 +618,7 @@ describe("bank-wire-dispute: regression — does not affect other workflows", ()
     );
   });
 
-  it("bank-wire-dispute has a different family than the other workflows", () => {
+  it("bank-wire-dispute has a different family than the other workflows", async () => {
     expect(workflowProfiles["contractor-dispute"].family).toBe("Property");
     expect(workflowProfiles["property-insurance-claim"].family).toBe("Property");
     expect(workflowProfiles["bank-wire-dispute"].family).toBe("Financial");

@@ -59,27 +59,27 @@ export function runWorkflowContracts(
     // ── Registry validity ──────────────────────────────────────────────
 
     describe("registry validity", () => {
-      it("is registered in the workflow registry", () => {
+      it("is registered in the workflow registry", async () => {
         expect(workflows[workflowId]).toBeDefined();
       });
 
-      it("has gold standard lifecycle", () => {
+      it("has gold standard lifecycle", async () => {
         expect(workflows[workflowId].lifecycle).toBe("gold");
       });
 
-      it("has the canonical 18 Gold Standard stages", () => {
+      it("has the canonical 18 Gold Standard stages", async () => {
         const stages = workflows[workflowId].goldStandardStages;
         expect(stages).toHaveLength(18);
         expect(stages[0]).toBe("secure-ingest");
         expect(stages[stages.length - 1]).toBe("prove-audit");
       });
 
-      it("has P06 and P10 pipeline archetypes", () => {
+      it("has P06 and P10 pipeline archetypes", async () => {
         expect(workflows[workflowId].pipelineArchetypes).toContain("P06");
         expect(workflows[workflowId].pipelineArchetypes).toContain("P10");
       });
 
-      it("has standard workflow steps", () => {
+      it("has standard workflow steps", async () => {
         const steps = workflows[workflowId].steps;
         expect(steps).toContain("intro");
         expect(steps).toContain("draft");
@@ -92,40 +92,40 @@ export function runWorkflowContracts(
     // ── Profile validity ───────────────────────────────────────────────
 
     describe("profile validity", () => {
-      it("is registered in the profile registry", () => {
+      it("is registered in the profile registry", async () => {
         expect(profile).toBeDefined();
         expect(profile.id).toBe(workflowId);
       });
 
-      it("has a non-empty family", () => {
+      it("has a non-empty family", async () => {
         expect(profile.family.length).toBeGreaterThan(0);
       });
 
-      it("has a non-empty primary keyword", () => {
+      it("has a non-empty primary keyword", async () => {
         expect(profile.primaryKeyword.length).toBeGreaterThan(0);
       });
 
-      it("has supporting keywords", () => {
+      it("has supporting keywords", async () => {
         expect(profile.supportingKeywords.length).toBeGreaterThanOrEqual(3);
       });
 
-      it("has required facts", () => {
+      it("has required facts", async () => {
         expect(profile.requiredFacts.length).toBeGreaterThanOrEqual(4);
       });
 
-      it("has evidence requirements", () => {
+      it("has evidence requirements", async () => {
         expect(profile.evidenceRequirements.length).toBeGreaterThanOrEqual(5);
       });
 
-      it("has a recipient role", () => {
+      it("has a recipient role", async () => {
         expect(profile.recipientRole.length).toBeGreaterThan(0);
       });
 
-      it("has a deadline policy that does not invent deadlines", () => {
+      it("has a deadline policy that does not invent deadlines", async () => {
         expect(profile.deadlinePolicy).toContain("Do not invent");
       });
 
-      it("distinguishes known from potential deadlines (when applicable)", () => {
+      it("distinguishes known from potential deadlines (when applicable)", async () => {
         // The contractor-dispute profile uses a simpler deadline policy.
         // Only assert the known/potential distinction for workflows that
         // adopt the structured deadline model.
@@ -134,19 +134,19 @@ export function runWorkflowContracts(
         }
       });
 
-      it("has an objective prompt", () => {
+      it("has an objective prompt", async () => {
         expect(profile.objectivePrompt.length).toBeGreaterThan(0);
       });
 
-      it("has a draft subject", () => {
+      it("has a draft subject", async () => {
         expect(profile.draftSubject.length).toBeGreaterThan(0);
       });
 
-      it("has a disclaimer stating it is not a law firm", () => {
+      it("has a disclaimer stating it is not a law firm", async () => {
         expect(profile.disclaimer).toContain("not a law firm");
       });
 
-      it("has valid pricing", () => {
+      it("has valid pricing", async () => {
         expect(profile.pricing.preparationFee).toBeGreaterThan(0);
         expect(profile.pricing.includedResponsePages).toBeGreaterThan(0);
         expect(profile.pricing.certifiedMail).toBeGreaterThan(profile.pricing.standardMail);
@@ -161,8 +161,8 @@ export function runWorkflowContracts(
     // ── Required fact validation ───────────────────────────────────────
 
     describe("required fact validation", () => {
-      it("blocks when all required facts are missing", () => {
-        const result = runPrivateOfficeWorkflow({
+      it("blocks when all required facts are missing", async () => {
+        const result = await runPrivateOfficeWorkflow({
           workflowId,
           documentId: "doc-1",
           text: "Source document text.",
@@ -178,7 +178,7 @@ export function runWorkflowContracts(
 
       // Test each required fact individually
       for (const fact of profile.requiredFacts) {
-        it(`blocks when ${fact} is missing`, () => {
+        it(`blocks when ${fact} is missing`, async () => {
           // Find the camelCase key for this fact
           const camelKey = fact
             .toLowerCase()
@@ -197,7 +197,7 @@ export function runWorkflowContracts(
               factsWithMissing[key] = "";
             }
           }
-          const result = runPrivateOfficeWorkflow({
+          const result = await runPrivateOfficeWorkflow({
             workflowId,
             documentId: "doc-1",
             text: "Source text.",
@@ -209,8 +209,8 @@ export function runWorkflowContracts(
         });
       }
 
-      it("blocks when objective is missing", () => {
-        const result = runPrivateOfficeWorkflow({
+      it("blocks when objective is missing", async () => {
+        const result = await runPrivateOfficeWorkflow({
           workflowId,
           documentId: "doc-1",
           text: "Source text.",
@@ -221,8 +221,8 @@ export function runWorkflowContracts(
         expect(result.errors.some((e) => e.includes("resolution"))).toBe(true);
       });
 
-      it("passes when all required facts and objective are provided", () => {
-        const result = runPrivateOfficeWorkflow({
+      it("passes when all required facts and objective are provided", async () => {
+        const result = await runPrivateOfficeWorkflow({
           workflowId,
           documentId: "doc-1",
           text: "Source text.",
@@ -237,19 +237,19 @@ export function runWorkflowContracts(
     // ── Privacy ────────────────────────────────────────────────────────
 
     describe("privacy", () => {
-      it("does not require SSN as a required fact", () => {
+      it("does not require SSN as a required fact", async () => {
         const allFacts = profile.requiredFacts.join(" ").toLowerCase();
         expect(allFacts).not.toContain("social security");
         expect(allFacts).not.toContain("ssn");
       });
 
-      it("does not require passwords or credentials", () => {
+      it("does not require passwords or credentials", async () => {
         const allFacts = profile.requiredFacts.join(" ").toLowerCase();
         expect(allFacts).not.toContain("password");
         expect(allFacts).not.toContain("credential");
       });
 
-      it("does not require full bank account numbers", () => {
+      it("does not require full bank account numbers", async () => {
         const allFacts = profile.requiredFacts.join(" ").toLowerCase();
         expect(allFacts).not.toContain("account number");
       });
@@ -258,8 +258,8 @@ export function runWorkflowContracts(
     // ── Evidence ───────────────────────────────────────────────────────
 
     describe("evidence", () => {
-      it("generates evidence items matching profile requirements", () => {
-        const result = runPrivateOfficeWorkflow({
+      it("generates evidence items matching profile requirements", async () => {
+        const result = await runPrivateOfficeWorkflow({
           workflowId,
           documentId: "doc-1",
           text: "Source text.",
@@ -271,8 +271,8 @@ export function runWorkflowContracts(
         );
       });
 
-      it("blocks when evidence is not provided", () => {
-        const result = runPrivateOfficeWorkflow({
+      it("blocks when evidence is not provided", async () => {
+        const result = await runPrivateOfficeWorkflow({
           workflowId,
           documentId: "doc-1",
           text: "Source text.",
@@ -283,8 +283,8 @@ export function runWorkflowContracts(
         expect(result.blocked).toBe(true);
       });
 
-      it("passes when all evidence is provided", () => {
-        const result = runPrivateOfficeWorkflow({
+      it("passes when all evidence is provided", async () => {
+        const result = await runPrivateOfficeWorkflow({
           workflowId,
           documentId: "doc-1",
           text: "Source text.",
@@ -299,8 +299,8 @@ export function runWorkflowContracts(
     // ── Timeline ───────────────────────────────────────────────────────
 
     describe("timeline", () => {
-      it("extracts dates from source documents", () => {
-        const result = runPrivateOfficeWorkflow({
+      it("extracts dates from source documents", async () => {
+        const result = await runPrivateOfficeWorkflow({
           workflowId,
           documentId: "doc-1",
           text: "Event occurred January 15, 2026. Follow-up on March 10, 2026.",
@@ -311,8 +311,8 @@ export function runWorkflowContracts(
         expect(result.analysis.timeline.length).toBeGreaterThan(0);
       });
 
-      it("returns empty timeline when source has no dates", () => {
-        const result = runPrivateOfficeWorkflow({
+      it("returns empty timeline when source has no dates", async () => {
+        const result = await runPrivateOfficeWorkflow({
           workflowId,
           documentId: "doc-1",
           text: "Document with no dates.",
@@ -327,8 +327,8 @@ export function runWorkflowContracts(
     // ── Analysis ───────────────────────────────────────────────────────
 
     describe("analysis", () => {
-      it("classifies correctly by workflow ID", () => {
-        const result = runPrivateOfficeWorkflow({
+      it("classifies correctly by workflow ID", async () => {
+        const result = await runPrivateOfficeWorkflow({
           workflowId,
           documentId: "doc-1",
           text: "Source text.",
@@ -339,8 +339,8 @@ export function runWorkflowContracts(
         expect(result.analysis.classification.type).toBe(workflowId);
       });
 
-      it("flags incomplete intake as a high-severity risk", () => {
-        const result = runPrivateOfficeWorkflow({
+      it("flags incomplete intake as a high-severity risk", async () => {
+        const result = await runPrivateOfficeWorkflow({
           workflowId,
           documentId: "doc-1",
           text: "Source text.",
@@ -352,8 +352,8 @@ export function runWorkflowContracts(
         expect(result.analysis.risks[0].title).toContain("Incomplete intake");
       });
 
-      it("generates strategy referencing the recipient role", () => {
-        const result = runPrivateOfficeWorkflow({
+      it("generates strategy referencing the recipient role", async () => {
+        const result = await runPrivateOfficeWorkflow({
           workflowId,
           documentId: "doc-1",
           text: "Source text.",
@@ -372,8 +372,8 @@ export function runWorkflowContracts(
     // ── Draft ──────────────────────────────────────────────────────────
 
     describe("draft generation", () => {
-      it("generates a draft with [DRAFT — REVIEW BEFORE SENDING] marker", () => {
-        const result = runPrivateOfficeWorkflow({
+      it("generates a draft with [DRAFT — REVIEW BEFORE SENDING] marker", async () => {
+        const result = await runPrivateOfficeWorkflow({
           workflowId,
           documentId: "doc-1",
           text: "Source text.",
@@ -384,8 +384,8 @@ export function runWorkflowContracts(
         expect(result.draft).toContain("[DRAFT — REVIEW BEFORE SENDING]");
       });
 
-      it("generates a draft with the profile draft subject", () => {
-        const result = runPrivateOfficeWorkflow({
+      it("generates a draft with the profile draft subject", async () => {
+        const result = await runPrivateOfficeWorkflow({
           workflowId,
           documentId: "doc-1",
           text: "Source text.",
@@ -396,8 +396,8 @@ export function runWorkflowContracts(
         expect(result.draft).toContain(profile.draftSubject);
       });
 
-      it("includes the disclaimer in the draft", () => {
-        const result = runPrivateOfficeWorkflow({
+      it("includes the disclaimer in the draft", async () => {
+        const result = await runPrivateOfficeWorkflow({
           workflowId,
           documentId: "doc-1",
           text: "Source text.",
@@ -409,8 +409,8 @@ export function runWorkflowContracts(
         expect(result.draft).toContain("not a law firm");
       });
 
-      it("returns null draftHash (computed by caller)", () => {
-        const result = runPrivateOfficeWorkflow({
+      it("returns null draftHash (computed by caller)", async () => {
+        const result = await runPrivateOfficeWorkflow({
           workflowId,
           documentId: "doc-1",
           text: "Source text.",
@@ -425,8 +425,8 @@ export function runWorkflowContracts(
     // ── Approval integrity ─────────────────────────────────────────────
 
     describe("approval version integrity", () => {
-      it("blocks when approvedDraftHash is null in consequential state", () => {
-        const result = runPrivateOfficeWorkflow({
+      it("blocks when approvedDraftHash is null in consequential state", async () => {
+        const result = await runPrivateOfficeWorkflow({
           workflowId,
           documentId: "doc-1",
           text: "Source text.",
@@ -447,15 +447,15 @@ export function runWorkflowContracts(
         expect(result.blocked).toBe(true);
       });
 
-      it("isApprovalValid rejects mismatched hashes", () => {
+      it("isApprovalValid rejects mismatched hashes", async () => {
         expect(isApprovalValid("hash-a", "hash-b")).toBe(false);
       });
 
-      it("isApprovalValid accepts matching hashes", () => {
+      it("isApprovalValid accepts matching hashes", async () => {
         expect(isApprovalValid("same", "same")).toBe(true);
       });
 
-      it("isApprovalValid rejects null hashes", () => {
+      it("isApprovalValid rejects null hashes", async () => {
         expect(isApprovalValid(null, "hash")).toBe(false);
         expect(isApprovalValid("hash", null)).toBe(false);
         expect(isApprovalValid(null, null)).toBe(false);
@@ -465,8 +465,8 @@ export function runWorkflowContracts(
     // ── Authorization gates ────────────────────────────────────────────
 
     describe("authorization gates", () => {
-      it("canAuthorizeMatterMail fails when analysis has blocking issues", () => {
-        const result = runPrivateOfficeWorkflow({
+      it("canAuthorizeMatterMail fails when analysis has blocking issues", async () => {
+        const result = await runPrivateOfficeWorkflow({
           workflowId,
           documentId: "doc-1",
           text: "Source text.",
@@ -484,8 +484,8 @@ export function runWorkflowContracts(
         ).toBe(false);
       });
 
-      it("canAuthorizeMatterMail fails when human approval is missing", () => {
-        const result = runPrivateOfficeWorkflow({
+      it("canAuthorizeMatterMail fails when human approval is missing", async () => {
+        const result = await runPrivateOfficeWorkflow({
           workflowId,
           documentId: "doc-1",
           text: "Source text.",
@@ -504,8 +504,8 @@ export function runWorkflowContracts(
         ).toBe(false);
       });
 
-      it("canAuthorizeMatterMail fails when payment is not complete", () => {
-        const result = runPrivateOfficeWorkflow({
+      it("canAuthorizeMatterMail fails when payment is not complete", async () => {
+        const result = await runPrivateOfficeWorkflow({
           workflowId,
           documentId: "doc-1",
           text: "Source text.",
@@ -524,8 +524,8 @@ export function runWorkflowContracts(
         ).toBe(false);
       });
 
-      it("canApproveMatter passes when all blocking issues resolved", () => {
-        const result = runPrivateOfficeWorkflow({
+      it("canApproveMatter passes when all blocking issues resolved", async () => {
+        const result = await runPrivateOfficeWorkflow({
           workflowId,
           documentId: "doc-1",
           text: "Source text.",
@@ -540,7 +540,7 @@ export function runWorkflowContracts(
     // ── Matter lifecycle ──────────────────────────────────────────────
 
     describe("matter lifecycle", () => {
-      it("transitions through draft → validated → review → approved", () => {
+      it("transitions through draft → validated → review → approved", async () => {
         const matter: PrivateOfficeMatter = {
           id: "matter-1",
           ownerId: "user-1",
@@ -573,7 +573,7 @@ export function runWorkflowContracts(
         expect(approved.approvedDraftHash).toBe("hash-test");
       });
 
-      it("rejects invalid transitions from terminal states", () => {
+      it("rejects invalid transitions from terminal states", async () => {
         const matter: PrivateOfficeMatter = {
           id: "matter-1",
           ownerId: "user-1",

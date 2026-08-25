@@ -32,19 +32,19 @@ const completeFacts: Record<string, string> = {
 };
 
 describe("property-insurance-claim: workflow registration", () => {
-  it("is registered in the profile registry", () => {
+  it("is registered in the profile registry", async () => {
     expect(profile).toBeDefined();
     expect(profile.id).toBe("property-insurance-claim");
   });
 
-  it("has gold standard lifecycle", () => {
+  it("has gold standard lifecycle", async () => {
     expect(workflows["property-insurance-claim"].lifecycle).toBe("gold");
   });
 });
 
 describe("property-insurance-claim: intake and required facts", () => {
-  it("blocks when required facts are missing", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("blocks when required facts are missing", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "property-insurance-claim",
       documentId: "doc-1",
       text: "Policy document text.",
@@ -58,8 +58,8 @@ describe("property-insurance-claim: intake and required facts", () => {
     expect(requiredBlocking.length).toBe(profile.requiredFacts.length);
   });
 
-  it("blocks when insurer name is missing", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("blocks when insurer name is missing", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "property-insurance-claim",
       documentId: "doc-1",
       text: "Policy text.",
@@ -70,8 +70,8 @@ describe("property-insurance-claim: intake and required facts", () => {
     expect(result.errors.some((e) => e.includes("insurer name"))).toBe(true);
   });
 
-  it("blocks when claim number is missing", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("blocks when claim number is missing", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "property-insurance-claim",
       documentId: "doc-1",
       text: "Policy text.",
@@ -82,8 +82,8 @@ describe("property-insurance-claim: intake and required facts", () => {
     expect(result.errors.some((e) => e.includes("claim number"))).toBe(true);
   });
 
-  it("blocks when date of loss is missing", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("blocks when date of loss is missing", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "property-insurance-claim",
       documentId: "doc-1",
       text: "Policy text.",
@@ -94,8 +94,8 @@ describe("property-insurance-claim: intake and required facts", () => {
     expect(result.errors.some((e) => e.includes("date of loss"))).toBe(true);
   });
 
-  it("blocks when description of damage is missing", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("blocks when description of damage is missing", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "property-insurance-claim",
       documentId: "doc-1",
       text: "Policy text.",
@@ -106,8 +106,8 @@ describe("property-insurance-claim: intake and required facts", () => {
     expect(result.errors.some((e) => e.includes("description of damage"))).toBe(true);
   });
 
-  it("blocks when insurer position is missing", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("blocks when insurer position is missing", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "property-insurance-claim",
       documentId: "doc-1",
       text: "Policy text.",
@@ -118,8 +118,8 @@ describe("property-insurance-claim: intake and required facts", () => {
     expect(result.errors.some((e) => e.includes("insurer position"))).toBe(true);
   });
 
-  it("blocks when objective is missing", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("blocks when objective is missing", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "property-insurance-claim",
       documentId: "doc-1",
       text: "Policy text.",
@@ -132,8 +132,8 @@ describe("property-insurance-claim: intake and required facts", () => {
 });
 
 describe("property-insurance-claim: evidence", () => {
-  it("generates evidence requirements from the profile", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("generates evidence requirements from the profile", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "property-insurance-claim",
       documentId: "doc-1",
       text: "Policy text.",
@@ -147,8 +147,8 @@ describe("property-insurance-claim: evidence", () => {
     );
   });
 
-  it("generates evidence items for missing facts when facts are absent", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("generates evidence items for missing facts when facts are absent", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "property-insurance-claim",
       documentId: "doc-1",
       text: "Policy text.",
@@ -163,8 +163,8 @@ describe("property-insurance-claim: evidence", () => {
     expect(missingEvidence.length).toBe(profile.requiredFacts.length);
   });
 
-  it("evidence items have correct IDs derived from requirement names", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("evidence items have correct IDs derived from requirement names", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "property-insurance-claim",
       documentId: "doc-1",
       text: "Policy text.",
@@ -177,8 +177,8 @@ describe("property-insurance-claim: evidence", () => {
     expect(evidenceDescriptions).toContain("photographs of property damage");
   });
 
-  it("blocks when evidence is not provided", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("blocks when evidence is not provided", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "property-insurance-claim",
       documentId: "doc-1",
       text: "Policy text.",
@@ -189,9 +189,9 @@ describe("property-insurance-claim: evidence", () => {
     expect(result.blocked).toBe(true);
   });
 
-  it("passes blocking gate when all evidence is provided", () => {
+  it("passes blocking gate when all evidence is provided", async () => {
     const evidenceStatuses = buildEvidenceStatuses("provided");
-    const result = runPrivateOfficeWorkflow({
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "property-insurance-claim",
       documentId: "doc-1",
       text: "Policy text.",
@@ -204,8 +204,8 @@ describe("property-insurance-claim: evidence", () => {
 });
 
 describe("property-insurance-claim: timeline and chronology", () => {
-  it("extracts dates from source documents for the timeline", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("extracts dates from source documents for the timeline", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "property-insurance-claim",
       documentId: "doc-1",
       text: "Date of loss: March 15, 2026. Claim reported: March 16, 2026. Denial letter dated April 2, 2026.",
@@ -218,8 +218,8 @@ describe("property-insurance-claim: timeline and chronology", () => {
     expect(dates).toContain("March 15, 2026");
   });
 
-  it("timeline events include source excerpts for provenance", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("timeline events include source excerpts for provenance", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "property-insurance-claim",
       documentId: "doc-1",
       text: "Denial letter dated April 2, 2026 states claim is denied.",
@@ -234,8 +234,8 @@ describe("property-insurance-claim: timeline and chronology", () => {
     expect(timelineEvent?.sourceExcerpt).toBeDefined();
   });
 
-  it("timeline is empty when source has no dates", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("timeline is empty when source has no dates", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "property-insurance-claim",
       documentId: "doc-1",
       text: "Policy document with no dates.",
@@ -248,8 +248,8 @@ describe("property-insurance-claim: timeline and chronology", () => {
 });
 
 describe("property-insurance-claim: analysis and findings", () => {
-  it("classifies as property-insurance-claim", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("classifies as property-insurance-claim", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "property-insurance-claim",
       documentId: "doc-1",
       text: "Policy text.",
@@ -260,8 +260,8 @@ describe("property-insurance-claim: analysis and findings", () => {
     expect(result.analysis.classification.type).toBe("property-insurance-claim");
   });
 
-  it("findings include confirmed facts when all required facts are provided", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("findings include confirmed facts when all required facts are provided", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "property-insurance-claim",
       documentId: "doc-1",
       text: "Policy text.",
@@ -275,8 +275,8 @@ describe("property-insurance-claim: analysis and findings", () => {
     expect(confirmed.length).toBeGreaterThan(0);
   });
 
-  it("findings include missing facts when required facts are absent", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("findings include missing facts when required facts are absent", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "property-insurance-claim",
       documentId: "doc-1",
       text: "Policy text.",
@@ -289,8 +289,8 @@ describe("property-insurance-claim: analysis and findings", () => {
     expect(missing.length).toBeGreaterThanOrEqual(profile.requiredFacts.length);
   });
 
-  it("risk assessment flags incomplete intake", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("risk assessment flags incomplete intake", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "property-insurance-claim",
       documentId: "doc-1",
       text: "Policy text.",
@@ -302,8 +302,8 @@ describe("property-insurance-claim: analysis and findings", () => {
     expect(result.analysis.risks[0].title).toContain("Incomplete intake");
   });
 
-  it("strategy addresses the insurer as recipient", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("strategy addresses the insurer as recipient", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "property-insurance-claim",
       documentId: "doc-1",
       text: "Policy text.",
@@ -316,8 +316,8 @@ describe("property-insurance-claim: analysis and findings", () => {
 });
 
 describe("property-insurance-claim: draft generation", () => {
-  it("generates a draft with the insurance claim subject line", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("generates a draft with the insurance claim subject line", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "property-insurance-claim",
       documentId: "doc-1",
       text: "Policy text.",
@@ -329,8 +329,8 @@ describe("property-insurance-claim: draft generation", () => {
     expect(result.draft).toContain("[DRAFT — REVIEW BEFORE SENDING]");
   });
 
-  it("draft includes user-provided facts", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("draft includes user-provided facts", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "property-insurance-claim",
       documentId: "doc-1",
       text: "Policy text.",
@@ -343,8 +343,8 @@ describe("property-insurance-claim: draft generation", () => {
     expect(result.draft).toContain("CLM-2026-001234");
   });
 
-  it("draft includes the disclaimer", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("draft includes the disclaimer", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "property-insurance-claim",
       documentId: "doc-1",
       text: "Policy text.",
@@ -356,8 +356,8 @@ describe("property-insurance-claim: draft generation", () => {
     expect(result.draft).toContain("not a law firm");
   });
 
-  it("draftHash is null in the result (computed by caller)", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("draftHash is null in the result (computed by caller)", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "property-insurance-claim",
       documentId: "doc-1",
       text: "Policy text.",
@@ -371,8 +371,8 @@ describe("property-insurance-claim: draft generation", () => {
 });
 
 describe("property-insurance-claim: approval version integrity", () => {
-  it("blocks when approvedDraftHash is null in consequential state", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("blocks when approvedDraftHash is null in consequential state", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "property-insurance-claim",
       documentId: "doc-1",
       text: "Policy text.",
@@ -394,15 +394,15 @@ describe("property-insurance-claim: approval version integrity", () => {
     expect(result.errors.some((e) => e.includes("approval"))).toBe(true);
   });
 
-  it("isApprovalValid rejects when draft was modified after approval", () => {
+  it("isApprovalValid rejects when draft was modified after approval", async () => {
     expect(isApprovalValid("new-hash", "approved-hash")).toBe(false);
   });
 
-  it("isApprovalValid accepts when hashes match", () => {
+  it("isApprovalValid accepts when hashes match", async () => {
     expect(isApprovalValid("same-hash", "same-hash")).toBe(true);
   });
 
-  it("isApprovalValid rejects null hashes", () => {
+  it("isApprovalValid rejects null hashes", async () => {
     expect(isApprovalValid(null, "hash")).toBe(false);
     expect(isApprovalValid("hash", null)).toBe(false);
     expect(isApprovalValid(null, null)).toBe(false);
@@ -410,8 +410,8 @@ describe("property-insurance-claim: approval version integrity", () => {
 });
 
 describe("property-insurance-claim: authorization gates", () => {
-  it("canAuthorizeMatterMail fails when analysis has blocking issues", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("canAuthorizeMatterMail fails when analysis has blocking issues", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "property-insurance-claim",
       documentId: "doc-1",
       text: "Policy text.",
@@ -429,8 +429,8 @@ describe("property-insurance-claim: authorization gates", () => {
     ).toBe(false);
   });
 
-  it("canAuthorizeMatterMail fails when human approval is missing", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("canAuthorizeMatterMail fails when human approval is missing", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "property-insurance-claim",
       documentId: "doc-1",
       text: "Policy text.",
@@ -449,8 +449,8 @@ describe("property-insurance-claim: authorization gates", () => {
     ).toBe(false);
   });
 
-  it("canAuthorizeMatterMail fails when payment is not complete", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("canAuthorizeMatterMail fails when payment is not complete", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "property-insurance-claim",
       documentId: "doc-1",
       text: "Policy text.",
@@ -469,8 +469,8 @@ describe("property-insurance-claim: authorization gates", () => {
     ).toBe(false);
   });
 
-  it("canApproveMatter passes when all blocking issues resolved and evidence provided", () => {
-    const result = runPrivateOfficeWorkflow({
+  it("canApproveMatter passes when all blocking issues resolved and evidence provided", async () => {
+    const result = await runPrivateOfficeWorkflow({
       workflowId: "property-insurance-claim",
       documentId: "doc-1",
       text: "Policy text.",
@@ -483,7 +483,7 @@ describe("property-insurance-claim: authorization gates", () => {
 });
 
 describe("property-insurance-claim: matter lifecycle", () => {
-  it("can create and transition a property-insurance-claim matter", () => {
+  it("can create and transition a property-insurance-claim matter", async () => {
     const matter: PrivateOfficeMatter = {
       id: "matter-1",
       ownerId: "user-1",
@@ -517,7 +517,7 @@ describe("property-insurance-claim: matter lifecycle", () => {
     expect(approved.approvedDraftHash).toBe("hash-abc");
   });
 
-  it("rejects invalid transitions for a property-insurance-claim matter", () => {
+  it("rejects invalid transitions for a property-insurance-claim matter", async () => {
     const matter: PrivateOfficeMatter = {
       id: "matter-1",
       ownerId: "user-1",
@@ -543,20 +543,20 @@ describe("property-insurance-claim: matter lifecycle", () => {
 });
 
 describe("property-insurance-claim: regression — does not affect contractor-dispute", () => {
-  it("contractor-dispute workflow still works independently", () => {
+  it("contractor-dispute workflow still works independently", async () => {
     const contractorProfile = workflowProfiles["contractor-dispute"];
     expect(contractorProfile.id).toBe("contractor-dispute");
     expect(contractorProfile.requiredFacts).toContain("contractor name");
     expect(contractorProfile.requiredFacts).not.toContain("claim number");
   });
 
-  it("both workflows use the same Gold Standard stages", () => {
+  it("both workflows use the same Gold Standard stages", async () => {
     const contractorStages = workflows["contractor-dispute"].goldStandardStages;
     const insuranceStages = workflows["property-insurance-claim"].goldStandardStages;
     expect(contractorStages).toEqual(insuranceStages);
   });
 
-  it("both workflows use the same pipeline archetypes", () => {
+  it("both workflows use the same pipeline archetypes", async () => {
     expect(workflows["contractor-dispute"].pipelineArchetypes).toEqual(
       workflows["property-insurance-claim"].pipelineArchetypes,
     );

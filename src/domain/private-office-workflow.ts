@@ -16,9 +16,13 @@ export interface PrivateOfficeWorkflowRequest
  * Canonical Private Office workflow entry point.
  * Every problem-specific workflow is dispatched through the same Gold Standard engine;
  * specialized domain analyzers remain internal extensions rather than alternate runtimes.
+ *
+ * Now async to support LLM intelligence enrichment via the shared intelligence layer.
+ * Every workflow automatically inherits multi-LLM capability through the shared
+ * workflow infrastructure — no workflow-specific LLM implementations needed.
  */
-export function runPrivateOfficeWorkflow(
+export async function runPrivateOfficeWorkflow(
   request: PrivateOfficeWorkflowRequest,
-): WorkflowExecutionResult {
+): Promise<WorkflowExecutionResult> {
   return runProfiledWorkflow(request, request.consequential);
 }
