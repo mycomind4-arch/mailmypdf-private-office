@@ -22,7 +22,7 @@
  * integration happen in the intelligence layer.
  */
 
-import type { LLMAdapter, LLMRequest, LLMResponse } from "./llm-adapter";
+import type { LLMAdapter, LLMRequest } from "./llm-adapter";
 import { LLMError, hashInput } from "./llm-adapter";
 import { GeminiAdapter } from "./gemini-adapter";
 import { OpenAIAdapter } from "./openai-adapter";
@@ -34,7 +34,7 @@ import type {
   LLMRuntimeConfig,
   FallbackChainEntry,
 } from "./llm-types";
-import { ALL_PROVIDERS, DEFAULT_PROVIDER } from "./llm-types";
+import { ALL_PROVIDERS } from "./llm-types";
 import { getLLMConfig } from "./llm-config";
 import type { ProviderConfig } from "./llm-types";
 

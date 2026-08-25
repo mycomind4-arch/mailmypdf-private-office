@@ -9,7 +9,7 @@
  *   - Malicious document instructions
  */
 
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { describe, expect, it, beforeEach, afterEach } from "vitest";
 import {
   _setAdapter,
   _resetAdapters,
@@ -171,7 +171,7 @@ describe("security: matter isolation", () => {
       propertyAddress: "123 Matter A Street",
       contractorName: "Contractor A",
     };
-    const matterBFacts = {
+    void {
       propertyAddress: "456 Matter B Avenue",
       contractorName: "Contractor B",
     };
@@ -200,7 +200,7 @@ describe("security: matter isolation", () => {
     _setAdapter("gemini", makeMockAdapter("gemini", "g", '{"facts":[],"findings":[],"timeline":[],"risks":[],"strategy":[],"classification":{"type":"test","confidence":0.5}}'));
 
     const matterADoc = "This is the document for Matter A with unique content AAAA.";
-    const matterBDoc = "This is the document for Matter B with unique content BBBB.";
+    void "This is the document for Matter B with unique content BBBB.";
 
     await enrichWithLLMIntelligence({
       workflowId: "contractor-dispute",

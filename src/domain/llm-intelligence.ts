@@ -37,19 +37,14 @@ import { getLLMConfig, getProvidersForOperation, getOperationMode } from "@/plat
 import { routeLLMRequest, callMultipleProviders, isLLMAvailable } from "@/platform/llm-router";
 import {
   llmAnalysisResultSchema,
-  llmFactExtractionResultSchema,
   llmClassificationSchema,
   llmRiskSchema,
-  llmStrategyRecommendationSchema,
-  llmDraftAssistanceSchema,
   parseStructuredOutput,
   type LLMAnalysisResult,
   type LLMExtractedFact,
   type LLMFinding,
-  type LLMTimelineEvent,
   type LLMRisk,
   type LLMStrategyRecommendation,
-  type LLMDraftAssistance,
 } from "@/platform/llm-schemas";
 import {
   reconcileFacts,
@@ -103,8 +98,6 @@ export interface IntelligenceEnrichmentResult {
 /**
  * Current prompt version for reproducibility.
  */
-const PROMPT_VERSION = "1.0.0";
-
 /**
  * Build the system prompt for LLM analysis.
  * This prompt is shared across all providers and all workflows.
@@ -242,24 +235,6 @@ Produce a JSON object with the following structure:
 Remember: Extract only what is present in the document. Mark confidence honestly. Do not invent.`;
 }
 
-// ── Hash helper ─────────────────────────────────────────────────────────
-
-import { hashInput } from "@/platform/llm-adapter";
-
-/**
- * Compute a canonical input hash for reproducibility.
- */
-async function computeInputHash(input: IntelligenceEnrichmentInput): Promise<string> {
-  const canonical = JSON.stringify({
-    workflowId: input.workflowId,
-    documentId: input.documentId,
-    text: input.text.slice(0, 50000),
-    userFacts: input.userFacts,
-    objective: input.objective,
-    profileId: input.profile.id,
-  });
-  return hashInput(canonical);
-}
 
 // ── Core Enrichment Function ─────────────────────────────────────────────
 
@@ -322,8 +297,6 @@ export async function enrichWithLLMIntelligence(
   // Build prompts (matter-isolated)
   const systemPrompt = buildSystemPrompt(input.profile);
   const userPrompt = buildUserPrompt(input);
-  const inputHash = await computeInputHash(input);
-
   // Route through provider chain
   let llmContent: string | null = null;
   let provenance: LLMFullProvenance | null = null;
@@ -446,7 +419,7 @@ export async function enrichWithLLMIntelligence(
     .filter(([, v]) => v?.trim())
     .map(([label, value]) => ({ label, value: value! }));
 
-  const { newFacts, conflicts, confirmedFacts } = reconcileFacts(
+  const { newFacts, conflicts } = reconcileFacts(
     userFactsArray,
     parsed.facts,
     provenance.provider,

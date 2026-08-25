@@ -21,7 +21,6 @@ import {
   type FactConflict,
 } from "./llm-reconciliation";
 import type { LLMExtractedFact } from "./llm-schemas";
-import type { LLMProviderId } from "./llm-types";
 
 // ── Fact Protection ──────────────────────────────────────────────────────
 

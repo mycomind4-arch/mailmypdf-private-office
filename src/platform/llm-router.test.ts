@@ -11,7 +11,7 @@
  *   - Consensus mode
  */
 
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { describe, expect, it, beforeEach, afterEach } from "vitest";
 import {
   routeLLMRequest,
   callMultipleProviders,
@@ -20,9 +20,7 @@ import {
   _resetAdapters,
 } from "./llm-router";
 import {
-  _setLLMConfig,
   _resetLLMConfig,
-  getLLMConfig,
 } from "./llm-config";
 import type { LLMAdapter, LLMRequest, LLMResponse } from "./llm-adapter";
 import type { LLMRuntimeConfig, LLMProviderId } from "./llm-types";
@@ -33,7 +31,7 @@ const originalFetch = globalThis.fetch;
 function makeMockAdapter(provider: string, model: string, content: string): LLMAdapter {
   return {
     provider,
-    async generate(request: LLMRequest): Promise<LLMResponse> {
+    async generate(_request: LLMRequest): Promise<LLMResponse> {
       return {
         content,
         provenance: {

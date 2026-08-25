@@ -11,13 +11,12 @@
  *   - LLM conflict findings block approval
  */
 
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { describe, expect, it, beforeEach, afterEach } from "vitest";
 import {
   canApproveMatter,
   canAuthorizeMatterMail,
   canCompleteMatterProof,
   analyzeMatterWorkflowInput,
-  type MatterAnalysis,
 } from "@/domain/gold-standard";
 import { isApprovalValid } from "@/domain/draft-provenance";
 import { computeDraftHash } from "@/domain/draft-provenance";
@@ -32,7 +31,7 @@ import {
   _setLLMConfig,
   _resetLLMConfig,
 } from "@/platform/llm-config";
-import type { LLMAdapter, LLMRequest, LLMResponse } from "@/platform/llm-adapter";
+import type { LLMAdapter, LLMResponse } from "@/platform/llm-adapter";
 import type { LLMRuntimeConfig, LLMProviderId } from "@/platform/llm-types";
 
 // ── Helpers ──────────────────────────────────────────────────────────────
