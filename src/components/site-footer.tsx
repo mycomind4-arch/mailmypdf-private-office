@@ -24,9 +24,9 @@ export function SiteFooter() {
             <ul className="mt-3 space-y-2 text-sm">
               <li><Link to="/products" className="text-ink-soft transition-colors hover:text-foreground">All Products</Link></li>
               <li><Link to="/workflows" className="text-ink-soft transition-colors hover:text-foreground">Workflows</Link></li>
-              <li><a href="https://mailmypdf.ai" className="text-ink-soft transition-colors hover:text-foreground">MailMyPDF</a></li>
-              <li><a href="https://appeal.mailmypdf.ai" className="text-ink-soft transition-colors hover:text-foreground">Appeal Mail</a></li>
-              <li><a href="https://dispute.mailmypdf.ai" className="text-ink-soft transition-colors hover:text-foreground">Dispute Mail</a></li>
+              <li><a href="https://mailmypdf-etc.pages.dev" className="text-ink-soft transition-colors hover:text-foreground">MailMyPDF</a></li>
+              <li><a href="https://mycomind4-arch-appeal-mail.pages.dev" className="text-ink-soft transition-colors hover:text-foreground">Appeal Mail</a></li>
+              <li><a href="https://mycomind4-arch-dispute-mail.pages.dev" className="text-ink-soft transition-colors hover:text-foreground">Dispute Mail</a></li>
             </ul>
           </div>
 
@@ -44,8 +44,8 @@ export function SiteFooter() {
           <div>
             <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Legal</div>
             <ul className="mt-3 space-y-2 text-sm">
-              <li><a href="https://mailmypdf.ai/privacy" className="text-ink-soft transition-colors hover:text-foreground">Privacy</a></li>
-              <li><a href="https://mailmypdf.ai/terms" className="text-ink-soft transition-colors hover:text-foreground">Terms</a></li>
+              <li><a href="https://mailmypdf-etc.pages.dev/privacy" className="text-ink-soft transition-colors hover:text-foreground">Privacy</a></li>
+              <li><a href="https://mailmypdf-etc.pages.dev/terms" className="text-ink-soft transition-colors hover:text-foreground">Terms</a></li>
             </ul>
           </div>
         </div>
