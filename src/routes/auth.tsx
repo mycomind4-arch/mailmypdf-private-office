@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
 import { ShieldCheck, ArrowRight } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
@@ -10,6 +10,7 @@ export const Route = createFileRoute("/auth")({ component: AuthPage });
 function AuthPage() {
   const { signIn, signUp, signInWithMagicLink, resetPassword, isConfigured } = useAuth();
   const navigate = useNavigate();
+  const searchParams = useSearch({ from: "/auth" }) as { returnTo?: string };
   const [mode, setMode] = useState<"signin" | "signup" | "reset" | "magic">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,13 +27,13 @@ function AuthPage() {
       if (mode === "signin") {
         const { error } = await signIn(email, password);
         if (error) setError(error);
-        else navigate({ to: "/dashboard" });
+        else navigate({ to: (searchParams?.returnTo || "/dashboard") as "/dashboard" });
       } else if (mode === "signup") {
         const { error, needsConfirmation } = await signUp(email, password);
         if (error) setError(error);
         else if (needsConfirmation)
           setInfo("Check your email to confirm your account before signing in.");
-        else navigate({ to: "/dashboard" });
+        else navigate({ to: (searchParams?.returnTo || "/dashboard") as "/dashboard" });
       } else if (mode === "reset") {
         const { error } = await resetPassword(email);
         if (error) setError(error);
