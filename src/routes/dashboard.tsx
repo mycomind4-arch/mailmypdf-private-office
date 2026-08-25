@@ -1,8 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Briefcase, ArrowRight, Mail, FileText } from "lucide-react";
-import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
+import { ArrowRight, BriefcaseBusiness, FileText, Mail, Plus, ShieldCheck } from "lucide-react";
+import { PrivateOfficeChrome } from "@/components/private-office-chrome";
 import { useAuth } from "@/lib/use-auth";
 import { workflows } from "@/domain/workflows";
 
@@ -17,6 +16,8 @@ interface MatterSummary {
   trackingNumber?: string | null;
 }
 
+const stageLabels = ["Intake", "Facts", "Evidence", "Analysis", "Strategy", "Draft", "Approval", "Delivery", "Proof"];
+
 function DashboardPage() {
   const { user, loading, isConfigured } = useAuth();
   const [matters] = useState<MatterSummary[]>([]);
@@ -27,124 +28,130 @@ function DashboardPage() {
       setMattersLoading(false);
       return;
     }
-    // In production, this would call a server function to list matters.
-    // For now, show the workflow directory as the starting point.
     setMattersLoading(false);
   }, [user, isConfigured]);
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-cream">
-        <SiteHeader />
-        <div className="container py-20 text-center">
-          <p className="text-slate-400">Loading…</p>
-        </div>
+      <main className="office-app-shell">
+        <PrivateOfficeChrome />
+        <div className="office-page office-page--loading"><span className="office-pulse" /> Loading Private Office…</div>
       </main>
     );
   }
 
   if (!user) {
     return (
-      <main className="min-h-screen bg-cream">
-        <SiteHeader />
-        <section className="py-20">
-          <div className="container max-w-md text-center">
-            <h1 className="text-2xl font-bold text-indigo-800" style={{ fontFamily: "var(--font-serif)" }}>
-              Sign in to view your matters
-            </h1>
-            <p className="mt-3 text-sm text-slate-500">
-              Your matters, evidence, and delivery records are private and require authentication.
-            </p>
-            <Link to="/auth" className="btn-primary mt-6">
-              Sign in <ArrowRight size={16} />
-            </Link>
+      <main className="office-app-shell">
+        <PrivateOfficeChrome />
+        <section className="office-auth-empty">
+          <div className="office-auth-panel">
+            <div className="office-section-kicker">PRIVATE ACCESS</div>
+            <h1>Sign in to your Private Office.</h1>
+            <p>Your matters, evidence, correspondence, and delivery records are isolated to your account.</p>
+            <Link to="/auth" className="office-primary-action">Sign in <ArrowRight size={16} /></Link>
           </div>
         </section>
-        <SiteFooter />
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-cream">
-      <SiteHeader />
-      <section className="border-b border-warm-border bg-white py-12">
-        <div className="container">
-          <div className="flex items-center justify-between">
+    <main className="office-app-shell">
+      <PrivateOfficeChrome />
+
+      <section className="office-dashboard-head">
+        <div className="office-dashboard-head__inner">
+          <div>
+            <div className="office-section-kicker">PRIVATE OFFICE / MATTERS</div>
+            <h1>Your matters.</h1>
+            <p>One controlled record from first fact to final proof.</p>
+          </div>
+          <Link to="/workflows" className="office-primary-action">
+            <Plus size={16} /> Open a matter
+          </Link>
+        </div>
+      </section>
+
+      <section className="office-page">
+        <div className="office-overview-grid">
+          <div className="office-stat-panel">
+            <span className="office-stat-panel__label">ACTIVE MATTERS</span>
+            <strong>{matters.length}</strong>
+            <span className="office-stat-panel__meta">Owner-scoped records</span>
+          </div>
+          <div className="office-stat-panel">
+            <span className="office-stat-panel__label">CONTROL MODEL</span>
+            <strong>9 gates</strong>
+            <span className="office-stat-panel__meta">Review before consequence</span>
+          </div>
+          <div className="office-stat-panel">
+            <span className="office-stat-panel__label">DELIVERY</span>
+            <strong>Verified</strong>
+            <span className="office-stat-panel__meta">Mail + proof boundary</span>
+          </div>
+        </div>
+
+        {mattersLoading ? (
+          <div className="office-empty-state"><span className="office-pulse" /> Loading matters…</div>
+        ) : matters.length === 0 ? (
+          <div className="office-empty-state office-empty-state--hero">
+            <div className="office-empty-state__icon"><BriefcaseBusiness size={22} /></div>
             <div>
-              <div className="eyebrow">YOUR MATTERS</div>
-              <h1 className="mt-2 text-3xl font-bold text-indigo-800" style={{ fontFamily: "var(--font-serif)" }}>
-                Welcome back
-              </h1>
-              <p className="mt-1 text-sm text-slate-500">
-                Manage your active matters, review drafts, and track delivery.
-              </p>
+              <div className="office-section-kicker">NO ACTIVE MATTERS</div>
+              <h2>Your office is ready.</h2>
+              <p>Start with a workflow. Private Office will turn the matter into a controlled record with facts, evidence, analysis, review, delivery, and proof.</p>
+              <Link to="/workflows" className="office-secondary-action">Browse workflows <ArrowRight size={15} /></Link>
             </div>
-            <Link to="/workflows" className="btn-gold">
-              Start a new matter <ArrowRight size={16} />
-            </Link>
           </div>
-        </div>
-      </section>
-
-      <section className="py-12">
-        <div className="container">
-          {mattersLoading ? (
-            <p className="text-slate-400">Loading matters…</p>
-          ) : matters.length === 0 ? (
-            <div className="card p-12 text-center">
-              <Briefcase size={48} className="mx-auto text-indigo-300" />
-              <h2 className="mt-4 text-xl font-semibold text-indigo-800">No active matters yet</h2>
-              <p className="mt-2 text-sm text-slate-500">
-                Start your first matter to prepare, review, send, and document professional correspondence.
-              </p>
-              <Link to="/workflows" className="btn-primary mt-6">
-                Browse workflows <ArrowRight size={16} />
-              </Link>
-            </div>
-          ) : (
-            <div className="grid gap-4">
-              {matters.map((matter) => (
-                <div key={matter.id} className="card p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className={`status-badge status-${matter.status}`}>{matter.status.replace(/_/g, " ")}</span>
-                      <h3 className="mt-2 text-lg font-semibold text-indigo-800">{matter.title}</h3>
-                      <p className="mt-1 text-xs text-slate-400">Updated {new Date(matter.updatedAt).toLocaleDateString()}</p>
-                    </div>
-                    {matter.trackingNumber && (
-                      <div className="flex items-center gap-2 text-sm text-indigo-600">
-                        <Mail size={16} />
-                        <span>{matter.trackingNumber}</span>
-                      </div>
-                    )}
-                  </div>
+        ) : (
+          <div className="office-matter-list">
+            {matters.map((matter) => (
+              <article key={matter.id} className="office-matter-card">
+                <div className="office-matter-card__topline">
+                  <span className={`office-status office-status--${matter.status}`}>{matter.status.replace(/_/g, " ")}</span>
+                  <span>Updated {new Date(matter.updatedAt).toLocaleDateString()}</span>
                 </div>
-              ))}
-            </div>
-          )}
-
-          {/* Available workflows */}
-          <div className="mt-12">
-            <h2 className="text-xl font-bold text-indigo-800" style={{ fontFamily: "var(--font-serif)" }}>
-              Available workflows
-            </h2>
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              {Object.values(workflows).map((wf) => (
-                <Link key={wf.id} to={`/workflows/${wf.id}`} className="card group p-6 transition hover:border-indigo-300">
-                  <div className="flex items-center justify-between">
-                    <FileText size={20} className="text-indigo-600" />
-                    <ArrowRight size={16} className="text-slate-300 transition group-hover:text-indigo-600" />
+                <div className="office-matter-card__body">
+                  <div>
+                    <h2>{matter.title}</h2>
+                    <p>{matter.workflowId}</p>
                   </div>
-                  <h3 className="mt-3 font-semibold text-indigo-800">{wf.title}</h3>
-                  <p className="mt-1 text-sm text-slate-500">{wf.description}</p>
-                </Link>
-              ))}
+                  {matter.trackingNumber ? (
+                    <div className="office-tracking"><Mail size={14} /> {matter.trackingNumber}</div>
+                  ) : null}
+                </div>
+                <div className="office-stage-row" aria-label="Matter lifecycle">
+                  {stageLabels.map((stage) => <span key={stage}>{stage}</span>)}
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+
+        <div className="office-workflow-section">
+          <div className="office-section-heading">
+            <div>
+              <div className="office-section-kicker">WORKFLOW LIBRARY</div>
+              <h2>Open a new matter</h2>
             </div>
+            <span className="office-section-note"><ShieldCheck size={14} /> Every workflow uses the same control model</span>
+          </div>
+
+          <div className="office-workflow-grid">
+            {Object.values(workflows).map((wf) => (
+              <Link key={wf.id} to={`/workflows/${wf.id}`} className="office-workflow-card">
+                <div className="office-workflow-card__icon"><FileText size={17} /></div>
+                <div className="office-workflow-card__copy">
+                  <h3>{wf.title}</h3>
+                  <p>{wf.description}</p>
+                </div>
+                <ArrowRight size={16} className="office-workflow-card__arrow" />
+              </Link>
+            ))}
           </div>
         </div>
       </section>
-      <SiteFooter />
     </main>
   );
 }
