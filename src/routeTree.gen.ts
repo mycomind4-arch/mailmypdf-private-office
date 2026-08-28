@@ -10,17 +10,29 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AccountRouteImport } from './routes/account'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as HowItWorksRouteImport } from './routes/how-it-works'
+import { Route as MailAPdfRouteImport } from './routes/mail-a-pdf'
+import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as ProductsRouteImport } from './routes/products'
+import { Route as StartRouteImport } from './routes/start'
 import { Route as WorkflowsIndexRouteImport } from './routes/workflows/index'
 import { Route as WorkflowsBankWireDisputeRouteImport } from './routes/workflows/bank-wire-dispute'
 import { Route as WorkflowsContractorDisputeRouteImport } from './routes/workflows/contractor-dispute'
 import { Route as WorkflowsPropertyInsuranceClaimRouteImport } from './routes/workflows/property-insurance-claim'
+import { Route as WorkflowsSecurityDepositDisputeRouteImport } from './routes/workflows/security-deposit-dispute'
 import { Route as WorkflowsTrustBeneficiaryNoticeRouteImport } from './routes/workflows/trust-beneficiary-notice'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountRoute = AccountRouteImport.update({
+  id: '/account',
+  path: '/account',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -31,6 +43,31 @@ const AuthRoute = AuthRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HowItWorksRoute = HowItWorksRouteImport.update({
+  id: '/how-it-works',
+  path: '/how-it-works',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MailAPdfRoute = MailAPdfRouteImport.update({
+  id: '/mail-a-pdf',
+  path: '/mail-a-pdf',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductsRoute = ProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StartRoute = StartRouteImport.update({
+  id: '/start',
+  path: '/start',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WorkflowsIndexRoute = WorkflowsIndexRouteImport.update({
@@ -56,6 +93,12 @@ const WorkflowsPropertyInsuranceClaimRoute =
     path: '/workflows/property-insurance-claim',
     getParentRoute: () => rootRouteImport,
   } as any)
+const WorkflowsSecurityDepositDisputeRoute =
+  WorkflowsSecurityDepositDisputeRouteImport.update({
+    id: '/workflows/security-deposit-dispute',
+    path: '/workflows/security-deposit-dispute',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const WorkflowsTrustBeneficiaryNoticeRoute =
   WorkflowsTrustBeneficiaryNoticeRouteImport.update({
     id: '/workflows/trust-beneficiary-notice',
@@ -65,32 +108,53 @@ const WorkflowsTrustBeneficiaryNoticeRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/how-it-works': typeof HowItWorksRoute
+  '/mail-a-pdf': typeof MailAPdfRoute
+  '/pricing': typeof PricingRoute
+  '/products': typeof ProductsRoute
+  '/start': typeof StartRoute
   '/workflows/bank-wire-dispute': typeof WorkflowsBankWireDisputeRoute
   '/workflows/contractor-dispute': typeof WorkflowsContractorDisputeRoute
   '/workflows/property-insurance-claim': typeof WorkflowsPropertyInsuranceClaimRoute
+  '/workflows/security-deposit-dispute': typeof WorkflowsSecurityDepositDisputeRoute
   '/workflows/trust-beneficiary-notice': typeof WorkflowsTrustBeneficiaryNoticeRoute
   '/workflows/': typeof WorkflowsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/how-it-works': typeof HowItWorksRoute
+  '/mail-a-pdf': typeof MailAPdfRoute
+  '/pricing': typeof PricingRoute
+  '/products': typeof ProductsRoute
+  '/start': typeof StartRoute
   '/workflows/bank-wire-dispute': typeof WorkflowsBankWireDisputeRoute
   '/workflows/contractor-dispute': typeof WorkflowsContractorDisputeRoute
   '/workflows/property-insurance-claim': typeof WorkflowsPropertyInsuranceClaimRoute
+  '/workflows/security-deposit-dispute': typeof WorkflowsSecurityDepositDisputeRoute
   '/workflows/trust-beneficiary-notice': typeof WorkflowsTrustBeneficiaryNoticeRoute
   '/workflows': typeof WorkflowsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/how-it-works': typeof HowItWorksRoute
+  '/mail-a-pdf': typeof MailAPdfRoute
+  '/pricing': typeof PricingRoute
+  '/products': typeof ProductsRoute
+  '/start': typeof StartRoute
   '/workflows/bank-wire-dispute': typeof WorkflowsBankWireDisputeRoute
   '/workflows/contractor-dispute': typeof WorkflowsContractorDisputeRoute
   '/workflows/property-insurance-claim': typeof WorkflowsPropertyInsuranceClaimRoute
+  '/workflows/security-deposit-dispute': typeof WorkflowsSecurityDepositDisputeRoute
   '/workflows/trust-beneficiary-notice': typeof WorkflowsTrustBeneficiaryNoticeRoute
   '/workflows/': typeof WorkflowsIndexRoute
 }
@@ -98,42 +162,70 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/account'
     | '/auth'
     | '/dashboard'
+    | '/how-it-works'
+    | '/mail-a-pdf'
+    | '/pricing'
+    | '/products'
+    | '/start'
     | '/workflows/bank-wire-dispute'
     | '/workflows/contractor-dispute'
     | '/workflows/property-insurance-claim'
+    | '/workflows/security-deposit-dispute'
     | '/workflows/trust-beneficiary-notice'
     | '/workflows/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/account'
     | '/auth'
     | '/dashboard'
+    | '/how-it-works'
+    | '/mail-a-pdf'
+    | '/pricing'
+    | '/products'
+    | '/start'
     | '/workflows/bank-wire-dispute'
     | '/workflows/contractor-dispute'
     | '/workflows/property-insurance-claim'
+    | '/workflows/security-deposit-dispute'
     | '/workflows/trust-beneficiary-notice'
     | '/workflows'
   id:
     | '__root__'
     | '/'
+    | '/account'
     | '/auth'
     | '/dashboard'
+    | '/how-it-works'
+    | '/mail-a-pdf'
+    | '/pricing'
+    | '/products'
+    | '/start'
     | '/workflows/bank-wire-dispute'
     | '/workflows/contractor-dispute'
     | '/workflows/property-insurance-claim'
+    | '/workflows/security-deposit-dispute'
     | '/workflows/trust-beneficiary-notice'
     | '/workflows/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AccountRoute: typeof AccountRoute
   AuthRoute: typeof AuthRoute
   DashboardRoute: typeof DashboardRoute
+  HowItWorksRoute: typeof HowItWorksRoute
+  MailAPdfRoute: typeof MailAPdfRoute
+  PricingRoute: typeof PricingRoute
+  ProductsRoute: typeof ProductsRoute
+  StartRoute: typeof StartRoute
   WorkflowsBankWireDisputeRoute: typeof WorkflowsBankWireDisputeRoute
   WorkflowsContractorDisputeRoute: typeof WorkflowsContractorDisputeRoute
   WorkflowsPropertyInsuranceClaimRoute: typeof WorkflowsPropertyInsuranceClaimRoute
+  WorkflowsSecurityDepositDisputeRoute: typeof WorkflowsSecurityDepositDisputeRoute
   WorkflowsTrustBeneficiaryNoticeRoute: typeof WorkflowsTrustBeneficiaryNoticeRoute
   WorkflowsIndexRoute: typeof WorkflowsIndexRoute
 }
@@ -145,6 +237,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account': {
+      id: '/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -159,6 +258,41 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/how-it-works': {
+      id: '/how-it-works'
+      path: '/how-it-works'
+      fullPath: '/how-it-works'
+      preLoaderRoute: typeof HowItWorksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mail-a-pdf': {
+      id: '/mail-a-pdf'
+      path: '/mail-a-pdf'
+      fullPath: '/mail-a-pdf'
+      preLoaderRoute: typeof MailAPdfRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/products': {
+      id: '/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof ProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/start': {
+      id: '/start'
+      path: '/start'
+      fullPath: '/start'
+      preLoaderRoute: typeof StartRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/workflows/': {
@@ -189,6 +323,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkflowsPropertyInsuranceClaimRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/workflows/security-deposit-dispute': {
+      id: '/workflows/security-deposit-dispute'
+      path: '/workflows/security-deposit-dispute'
+      fullPath: '/workflows/security-deposit-dispute'
+      preLoaderRoute: typeof WorkflowsSecurityDepositDisputeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/workflows/trust-beneficiary-notice': {
       id: '/workflows/trust-beneficiary-notice'
       path: '/workflows/trust-beneficiary-notice'
@@ -201,11 +342,18 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AccountRoute: AccountRoute,
   AuthRoute: AuthRoute,
   DashboardRoute: DashboardRoute,
+  HowItWorksRoute: HowItWorksRoute,
+  MailAPdfRoute: MailAPdfRoute,
+  PricingRoute: PricingRoute,
+  ProductsRoute: ProductsRoute,
+  StartRoute: StartRoute,
   WorkflowsBankWireDisputeRoute: WorkflowsBankWireDisputeRoute,
   WorkflowsContractorDisputeRoute: WorkflowsContractorDisputeRoute,
   WorkflowsPropertyInsuranceClaimRoute: WorkflowsPropertyInsuranceClaimRoute,
+  WorkflowsSecurityDepositDisputeRoute: WorkflowsSecurityDepositDisputeRoute,
   WorkflowsTrustBeneficiaryNoticeRoute: WorkflowsTrustBeneficiaryNoticeRoute,
   WorkflowsIndexRoute: WorkflowsIndexRoute,
 }

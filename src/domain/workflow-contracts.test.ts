@@ -97,6 +97,23 @@ runWorkflowContracts("trust-beneficiary-notice", {
   validObjective: "Request a full accounting of trust assets and distributions.",
 });
 
+// ── Security Deposit Dispute ──────────────────────────────────────────────
+
+runWorkflowContracts("security-deposit-dispute", {
+  completeFacts: {
+    rentalPropertyAddress: "789 Pine Court, Denver, CO 80202",
+    landlordOrPropertyManagerName: "Mountain View Properties LLC",
+    leaseOrRentalAgreementReference: "Lease dated September 1, 2025, 12-month term",
+    depositAmount: "$2,500.00",
+    disputeDescription:
+      "Landlord retained $1,800 of the $2,500 security deposit for damages that existed at move-in and were documented in the move-in inspection report. No itemized statement was provided within the statutory deadline.",
+    landlordResponse:
+      "Landlord claims carpet replacement and painting costs but did not provide receipts or an itemized deduction list within 30 days of move-out.",
+  },
+  buildEvidenceStatuses: () => buildEvidenceStatuses("security-deposit-dispute"),
+  validObjective: "Return the full security deposit and provide an itemized statement.",
+});
+
 // ── Meta-test: verify all registered workflows have contract tests ───────
 
 describe("factory contract coverage", () => {

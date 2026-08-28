@@ -74,7 +74,17 @@ export const matterAnalysisSchema = z.object({
       label: z.string(),
       value: z.string(),
       sourceExcerpt: z.string().optional(),
-      provenance: factProvenanceSchema.default("user_provided"),
+      provenance: z
+        .enum([
+          "user_provided",
+          "extracted",
+          "inferred",
+          "verified",
+          "ai_suggested",
+          "llm_generated",
+          "externally_sourced",
+        ])
+        .default("user_provided"),
     }),
   ),
   findings: z.array(matterFindingSchema),

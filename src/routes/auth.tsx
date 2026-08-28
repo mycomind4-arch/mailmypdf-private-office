@@ -1,6 +1,6 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
-import { ShieldCheck, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { useAuth } from "@/lib/use-auth";
@@ -10,6 +10,7 @@ export const Route = createFileRoute("/auth")({ component: AuthPage });
 function AuthPage() {
   const { signIn, signUp, signInWithMagicLink, resetPassword, isConfigured } = useAuth();
   const navigate = useNavigate();
+  const searchParams = useSearch({ from: "/auth" }) as { returnTo?: string };
   const [mode, setMode] = useState<"signin" | "signup" | "reset" | "magic">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,13 +27,13 @@ function AuthPage() {
       if (mode === "signin") {
         const { error } = await signIn(email, password);
         if (error) setError(error);
-        else navigate({ to: "/dashboard" });
+        else navigate({ to: (searchParams?.returnTo || "/dashboard") as "/dashboard" });
       } else if (mode === "signup") {
         const { error, needsConfirmation } = await signUp(email, password);
         if (error) setError(error);
         else if (needsConfirmation)
           setInfo("Check your email to confirm your account before signing in.");
-        else navigate({ to: "/dashboard" });
+        else navigate({ to: (searchParams?.returnTo || "/dashboard") as "/dashboard" });
       } else if (mode === "reset") {
         const { error } = await resetPassword(email);
         if (error) setError(error);
@@ -47,29 +48,39 @@ function AuthPage() {
     }
   }
 
+  const titles: Record<typeof mode, string> = {
+    signin: "Sign in to your Private Office",
+    signup: "Create your Private Office",
+    reset: "Reset your password",
+    magic: "Sign in with a magic link",
+  };
+
   return (
-    <main className="min-h-screen bg-cream">
+    <main className="flex min-h-screen flex-col bg-ivory">
       <SiteHeader />
-      <section className="py-20 md:py-28">
-        <div className="container max-w-md">
-          <div className="card p-8">
-            <div className="flex items-center gap-3">
-              <ShieldCheck size={28} className="text-indigo-700" />
-              <h1 className="text-2xl font-bold text-indigo-800" style={{ fontFamily: "var(--font-serif)" }}>
-                {mode === "signin" ? "Sign in" : mode === "signup" ? "Create account" : mode === "reset" ? "Reset password" : "Magic link sign-in"}
-              </h1>
-            </div>
+      <section className="flex flex-1 items-center justify-center px-4 py-20">
+        <div className="w-full max-w-md">
+          <div className="section-kicker text-center">Private Access</div>
+          <h1 className="mt-4 text-center text-4xl leading-tight text-charcoal">
+            {titles[mode]}
+          </h1>
+          <p className="mt-3 text-center text-sm leading-relaxed text-stone">
+            Your matters, evidence, correspondence, and delivery records are isolated to your account.
+          </p>
+
+          <div className="mt-8 rounded-xl border border-rule bg-paper p-8 shadow-card">
             {!isConfigured && (
-              <p className="mt-4 alert alert-warning">
+              <p className="mb-4 alert alert-warning">
                 Authentication is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to enable account access.
               </p>
             )}
-            {error && <p className="mt-4 alert alert-danger">{error}</p>}
-            {info && <p className="mt-4 alert alert-success">{info}</p>}
-            <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+            {error && <p className="mb-4 alert alert-danger">{error}</p>}
+            {info && <p className="mb-4 alert alert-success">{info}</p>}
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="input-label">Email</label>
+                <label className="input-label" htmlFor="email">Email</label>
                 <input
+                  id="email"
                   type="email"
                   required
                   value={email}
@@ -80,8 +91,9 @@ function AuthPage() {
               </div>
               {(mode === "signin" || mode === "signup") && (
                 <div>
-                  <label className="input-label">Password</label>
+                  <label className="input-label" htmlFor="password">Password</label>
                   <input
+                    id="password"
                     type="password"
                     required
                     value={password}
@@ -93,10 +105,10 @@ function AuthPage() {
               )}
               <button type="submit" disabled={loading} className="btn-primary w-full justify-center">
                 {loading ? "Please wait…" : mode === "signin" ? "Sign in" : mode === "signup" ? "Create account" : mode === "reset" ? "Send reset link" : "Send magic link"}
-                <ArrowRight size={16} />
+                {!loading && <ArrowRight size={16} />}
               </button>
             </form>
-            <div className="mt-6 flex flex-wrap gap-3 text-sm">
+            <div className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-sm">
               {mode !== "signin" && (
                 <button onClick={() => { setMode("signin"); setError(null); setInfo(null); }} className="btn-ghost">
                   Sign in

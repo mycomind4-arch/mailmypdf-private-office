@@ -252,4 +252,61 @@ export const workflowProfiles: Record<WorkflowId, WorkflowProfile> = {
       registeredMail: 24.99,
     },
   },
+  "security-deposit-dispute": {
+    id: "security-deposit-dispute",
+    slug: "security-deposit-dispute",
+    family: "Property",
+    primaryKeyword: "security deposit dispute letter",
+    supportingKeywords: [
+      "security deposit return letter",
+      "landlord security deposit dispute",
+      "deduction dispute letter",
+      "move-out condition letter",
+      "security deposit demand letter",
+      "landlord tenant deposit dispute",
+      "unauthorized deduction letter",
+    ],
+    searchIntent: "commercial",
+    problem:
+      "A tenant's security deposit has not been returned, has been partially returned with disputed deductions, or the landlord has charged for damage the tenant disputes — and the tenant needs to document the dispute with lease evidence, move-in and move-out condition records, correspondence, and professional correspondence to the landlord or property manager.",
+    outcome:
+      "Create a documented security deposit dispute letter identifying the rental property, the landlord or property manager, the lease, the deposit amount, the disputed deductions, the condition evidence, the chronology, and the requested resolution.",
+    recipientRole: "landlord",
+    requiredFacts: [
+      "rental property address",
+      "landlord or property manager name",
+      "lease or rental agreement reference",
+      "deposit amount",
+      "dispute description",
+      "landlord response",
+    ],
+    evidenceRequirements: [
+      "lease or rental agreement",
+      "move-in inspection or condition report",
+      "move-out inspection or condition report",
+      "photos of move-in and move-out condition",
+      "security deposit receipt or statement",
+      "deduction itemization or itemized statement",
+      "correspondence with landlord or property manager",
+      "rent payment records",
+      "repair receipts or estimates when relevant",
+    ],
+    deadlinePolicy:
+      "Security deposit return timelines are governed by the lease, state law, and the jurisdiction. Capture all dates visible in the lease, correspondence, and deposit statements. Distinguish known deadlines explicitly stated in the lease, deposit itemization, or landlord correspondence from potential deadlines that depend on jurisdiction or state statute. Flag any stated return deadlines or response timeframes as known deadlines. Flag any statutory deadlines or limitation periods as potential deadlines requiring verification. Do not invent a statutory deadline. Potential deadline identified — verify against the applicable lease, state law, and jurisdiction. Surface all date facts for human review.",
+    objectivePrompt:
+      "What specific resolution are you requesting from the landlord or property manager — full deposit return, corrected deduction, written explanation, refund of unauthorized charges, or other documented resolution?",
+    draftSubject: "Security Deposit Dispute Correspondence",
+    disclaimer:
+      "Private Office provides document preparation, evidence organization, and mailing assistance. It is not a law firm, landlord-tenant court, housing authority, or government agency and does not provide legal advice, determine the lawful amount of a deposit, interpret lease provisions as legal conclusions, or guarantee any outcome including deposit return. You remain responsible for the facts and decisions in your matter.",
+    pricing: {
+      preparationFee: 27.99,
+      includedResponsePages: 4,
+      responsePagePrice: 0.45,
+      supportingPagePrice: 0.25,
+      standardMail: 5.49,
+      certifiedMail: 12.99,
+      certifiedReturnReceipt: 18.99,
+      registeredMail: 24.99,
+    },
+  },
 };

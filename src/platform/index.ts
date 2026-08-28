@@ -9,3 +9,5 @@ export * from "./llm-config";
 export * from "./llm-router";
 export * from "./llm-schemas";
 export * from "./llm-reconciliation";
+export * from "./authority-provider";
+export * as prompts from "./prompts";
