@@ -1,3 +1,4 @@
+import "./workflow-profile-extensions";
 import {
   runProfiledWorkflow,
   type WorkflowConsequentialState,
