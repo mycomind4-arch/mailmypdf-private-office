@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { PRICES, BAND_LABELS, getPricingProfilesByVertical } from "@mailmypdf/pricing";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 
@@ -6,16 +7,16 @@ export const Route = createFileRoute("/pricing")({
   head: () => ({
     meta: [
       { title: "Pricing — Private Office" },
-      { name: "description", content: "Transparent pricing for professional correspondence preparation and certified mailing." },
+      { name: "description", content: "Pay for the matter preparation, then choose your mailing. Preparation starts at $29.99. Mailing from $4.99." },
     ],
   }),
   component: PricingPage,
 });
 
 const tiers = [
-  { name: "Standard", price: "$4.99", desc: "USPS Standard Mail with tracking" },
-  { name: "Certified", price: "$14.94", desc: "USPS Certified Mail with tracking and proof of delivery" },
-  { name: "Registered", price: "$32.49", desc: "USPS Registered Mail for high-value documents" },
+  { name: "Standard", price: `$${(PRICES.standard / 100).toFixed(2)}`, desc: "USPS Standard Mail with tracking" },
+  { name: "Certified", price: `$${(PRICES.certified / 100).toFixed(2)}`, desc: "USPS Certified Mail with tracking and proof of delivery" },
+  { name: "Registered", price: `$${(PRICES.registered / 100).toFixed(2)}`, desc: "USPS Registered Mail for high-value documents" },
 ];
 
 function PricingPage() {
@@ -26,7 +27,7 @@ function PricingPage() {
         <div className="container max-w-3xl py-16 md:py-24">
           <div className="section-kicker">Pricing</div>
           <h1 className="mt-4 text-4xl leading-tight text-charcoal md:text-5xl">
-            Simple, transparent pricing.
+            Pay for the work, then choose your mailing.
           </h1>
           <p className="mt-4 max-w-2xl text-lg leading-relaxed text-stone">
             Pay per document. No subscriptions. Choose your mail class and add preparation.
