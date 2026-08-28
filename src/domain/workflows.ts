@@ -1,4 +1,4 @@
-export type WorkflowId = "contractor-dispute" | "property-insurance-claim" | "bank-wire-dispute" | "trust-beneficiary-notice" | "security-deposit-dispute";
+export type WorkflowId = "contractor-dispute" | "property-insurance-claim" | "insurance-claim-command-center" | "bank-wire-dispute" | "trust-beneficiary-notice" | "security-deposit-dispute";
 
 export type WorkflowStep =
   | "intro"
@@ -86,6 +86,15 @@ const definitions: Array<
       "Document and pursue a property insurance claim — denied claims, underpayments, disputed scope, delayed responses, or supplemental claims — with evidence, chronology, and professional correspondence.",
     disclaimer:
       "Private Office provides document preparation, evidence organization, and mailing assistance. It is not a law firm and does not provide legal advice or representation.",
+    lifecycle: "gold",
+  },
+  {
+    id: "insurance-claim-command-center",
+    title: "Insurance Claim Command Center",
+    description:
+      "Organize and manage a complex insurance claim across documents, evidence, communications, deadlines, payments, disputed issues, and response options — with AI-assisted matter intelligence and professionally prepared correspondence.",
+    disclaimer:
+      "Private Office provides document preparation, evidence organization, AI-assisted analysis, and mailing assistance. It is not a law firm, insurer, adjuster, public regulator, or claims representative and does not provide legal advice, determine coverage, determine entitlement to payment, or guarantee claim outcomes. You remain responsible for the facts and decisions in your matter.",
     lifecycle: "gold",
   },
   {
