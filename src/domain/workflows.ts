@@ -1,4 +1,4 @@
-export type WorkflowId = "contractor-dispute" | "property-insurance-claim" | "bank-wire-dispute" | "trust-beneficiary-notice" | "security-deposit-dispute";
+export type WorkflowId = "contractor-dispute" | "property-insurance-claim" | "bank-wire-dispute" | "trust-beneficiary-notice" | "security-deposit-dispute" | "insurance-claim-command-center" | "estate-legacy-document-organizer";
 
 export type WorkflowStep =
   | "intro"
@@ -113,6 +113,24 @@ const definitions: Array<
       "Document a security deposit dispute — non-return, partial return, unauthorized deductions, or disputed damage charges — with lease evidence, move-in/move-out condition documentation, correspondence, and professional correspondence to the landlord or property manager.",
     disclaimer:
       "Private Office provides document preparation, evidence organization, and mailing assistance. It is not a law firm, landlord-tenant court, housing authority, or government agency and does not provide legal advice, determine the lawful amount of a deposit, or guarantee any outcome including deposit return.",
+    lifecycle: "gold",
+  },
+  {
+    id: "insurance-claim-command-center",
+    title: "Insurance Claim Command Center",
+    description:
+      "Organize a complex insurance claim into an evidence-backed matter record — extracting documents, facts, chronology, discrepancies, deadlines, risks, and response options across property, auto, valuables, and business-related losses.",
+    disclaimer:
+      "Private Office provides document organization, evidence analysis, correspondence preparation, and mailing assistance. It is not a law firm, insurance company, claims adjuster, regulator, or public adjuster and does not provide legal advice, insurance coverage determinations, claims handling, or guaranteed recovery.",
+    lifecycle: "gold",
+  },
+  {
+    id: "estate-legacy-document-organizer",
+    title: "Estate & Legacy Document Organizer",
+    description:
+      "Turn an estate and legacy document collection into a structured private-office record — organizing wills, trusts, powers of attorney, health directives, deeds, insurance records, beneficiary documents, and related materials while using AI to identify missing documents, conflicting facts, important dates, and questions for professional review.",
+    disclaimer:
+      "Private Office provides document organization, factual extraction, evidence mapping, chronology, and correspondence preparation. It is not a law firm, estate planner, fiduciary, financial adviser, tax professional, court, or government agency and does not provide legal, tax, investment, or estate-planning advice or determine the legal validity or effect of any document.",
     lifecycle: "gold",
   },
 ];
