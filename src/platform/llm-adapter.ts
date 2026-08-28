@@ -4,12 +4,12 @@
  * Architecture:
  *   Workflow / Analysis / Draft
  *           ↓
- *       LLM Adapter (transport layer)
+ *       LLM Adapter
  *           ↓
  *   ┌──────┼──────────┐
  *   │      │          │
- * Gemini  OpenAI   Anthropic
- * (default) (optional) (optional)
+ * Gemini  OpenAI   Future
+ * (default)
  *
  * The LLM proposes information. The deterministic application validates and
  * controls state. The human approves consequential correspondence.
@@ -18,10 +18,6 @@
  * - authorization, approval, payment, fulfillment
  * - matter state transitions
  * - consequential mailing
- *
- * For the multi-LLM provider router, see llm-router.ts.
- * For structured output schemas, see llm-schemas.ts.
- * For runtime configuration, see llm-config.ts.
  */
 
 import { z } from "zod";
@@ -29,7 +25,7 @@ import { z } from "zod";
 // ── Provenance ──────────────────────────────────────────────────────────
 
 export interface LLMProvenance {
-  /** Provider identifier: "gemini", "openai", "anthropic" */
+  /** Provider identifier: "gemini", "openai", etc. */
   provider: string;
   /** Model identifier used for generation */
   model: string;
@@ -295,9 +291,6 @@ export async function generateWithRetry(
 // ── Factory ─────────────────────────────────────────────────────────────
 
 import { GeminiAdapter } from "./gemini-adapter";
-import { OpenAIAdapter } from "./openai-adapter";
-import { AnthropicAdapter } from "./anthropic-adapter";
-import type { LLMProviderId } from "./llm-types";
 
 let cachedAdapter: LLMAdapter | null = null;
 
@@ -305,19 +298,19 @@ let cachedAdapter: LLMAdapter | null = null;
  * Returns the configured LLM adapter. Defaults to Gemini.
  * Selection via LLM_PROVIDER environment variable.
  * Returns null when no provider is configured (rule-based path is used).
- *
- * NOTE: This is the legacy single-adapter factory. The multi-provider
- * router (llm-router.ts) should be used for fallback and consensus.
- * This factory is kept for backward compatibility.
  */
 export function getLLMAdapter(): LLMAdapter | null {
   if (cachedAdapter !== null) return cachedAdapter;
 
-  const provider = (process.env.LLM_PROVIDER ?? "gemini") as LLMProviderId;
+  const provider = process.env.LLM_PROVIDER ?? "gemini";
+  const apiKey = process.env.GEMINI_API_KEY ?? process.env.GOOGLE_AI_API_KEY;
+
+  if (!apiKey) {
+    // No credentials configured — use rule-based path
+    return null;
+  }
 
   if (provider === "gemini") {
-    const apiKey = process.env.GEMINI_API_KEY ?? process.env.GOOGLE_AI_API_KEY;
-    if (!apiKey) return null;
     cachedAdapter = new GeminiAdapter({
       apiKey,
       model: process.env.GEMINI_MODEL ?? "gemini-2.0-flash",
@@ -326,28 +319,7 @@ export function getLLMAdapter(): LLMAdapter | null {
     return cachedAdapter;
   }
 
-  if (provider === "openai") {
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) return null;
-    cachedAdapter = new OpenAIAdapter({
-      apiKey,
-      model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
-      apiUrl: process.env.OPENAI_API_URL,
-    });
-    return cachedAdapter;
-  }
-
-  if (provider === "anthropic") {
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) return null;
-    cachedAdapter = new AnthropicAdapter({
-      apiKey,
-      model: process.env.ANTHROPIC_MODEL ?? "claude-3-5-sonnet-20241022",
-      apiUrl: process.env.ANTHROPIC_API_URL,
-    });
-    return cachedAdapter;
-  }
-
+  // Future providers: add openai, anthropic, etc. here
   throw new LLMError(
     `LLM provider "${provider}" is not configured`,
     provider,

@@ -19,8 +19,8 @@ function buildEvidenceStatuses(status: "provided" = "provided"): Record<string, 
 const draftHash = "test-draft-hash-abc123";
 
 describe("canonical Private Office workflow dispatcher", () => {
-  it("dispatches the contractor-dispute workflow through the profile engine", async () => {
-    const result = await runPrivateOfficeWorkflow({
+  it("dispatches the contractor-dispute workflow through the profile engine", () => {
+    const result = runPrivateOfficeWorkflow({
       workflowId: "contractor-dispute",
       documentId: "doc-1",
       text: "Contract dated January 15, 2026. Invoice #1234.",
@@ -37,8 +37,8 @@ describe("canonical Private Office workflow dispatcher", () => {
     expect(result.stages.map((s) => s.stage)).toContain("blocking-gates");
   });
 
-  it("blocks when source document is missing", async () => {
-    const result = await runPrivateOfficeWorkflow({
+  it("blocks when source document is missing", () => {
+    const result = runPrivateOfficeWorkflow({
       workflowId: "contractor-dispute",
       documentId: "doc-1",
       text: "",
@@ -50,8 +50,8 @@ describe("canonical Private Office workflow dispatcher", () => {
     expect(result.stages.find((s) => s.stage === "draft")?.status).toBe("blocked");
   });
 
-  it("blocks when required facts are missing", async () => {
-    const result = await runPrivateOfficeWorkflow({
+  it("blocks when required facts are missing", () => {
+    const result = runPrivateOfficeWorkflow({
       workflowId: "contractor-dispute",
       documentId: "doc-1",
       text: "Some source text.",
@@ -62,10 +62,10 @@ describe("canonical Private Office workflow dispatcher", () => {
     expect(result.errors.some((e) => e.includes("required"))).toBe(true);
   });
 
-  it("generates a draft when intake is complete", async () => {
+  it("generates a draft when intake is complete", () => {
     const evidenceStatuses = buildEvidenceStatuses();
 
-    const result = await runPrivateOfficeWorkflow({
+    const result = runPrivateOfficeWorkflow({
       workflowId: "contractor-dispute",
       documentId: "doc-1",
       text: "Contract dated January 15, 2026.",
@@ -87,8 +87,8 @@ describe("canonical Private Office workflow dispatcher", () => {
     );
   });
 
-  it("skips consequential stages when no consequential state is supplied", async () => {
-    const result = await runPrivateOfficeWorkflow({
+  it("skips consequential stages when no consequential state is supplied", () => {
+    const result = runPrivateOfficeWorkflow({
       workflowId: "contractor-dispute",
       documentId: "doc-1",
       text: "Contract text.",
@@ -100,8 +100,8 @@ describe("canonical Private Office workflow dispatcher", () => {
     expect(humanReview?.status).toBe("blocked");
   });
 
-  it("requires human approval in consequential state before authorized mail", async () => {
-    const result = await runPrivateOfficeWorkflow({
+  it("requires human approval in consequential state before authorized mail", () => {
+    const result = runPrivateOfficeWorkflow({
       workflowId: "contractor-dispute",
       documentId: "doc-1",
       text: "Contract text.",
@@ -122,10 +122,10 @@ describe("canonical Private Office workflow dispatcher", () => {
     expect(result.blocked).toBe(true);
   });
 
-  it("passes all stages when intake is complete and consequential gates are satisfied", async () => {
+  it("passes all stages when intake is complete and consequential gates are satisfied", () => {
     const evidenceStatuses = buildEvidenceStatuses();
 
-    const result = await runPrivateOfficeWorkflow({
+    const result = runPrivateOfficeWorkflow({
       workflowId: "contractor-dispute",
       documentId: "doc-1",
       text: "Contract dated January 15, 2026. Invoice #1234.",
@@ -155,10 +155,10 @@ describe("canonical Private Office workflow dispatcher", () => {
     expect(proveAudit?.status).toBe("passed");
   });
 
-  it("blocks approval when approvedDraftHash is null in consequential state", async () => {
+  it("blocks approval when approvedDraftHash is null in consequential state", () => {
     const evidenceStatuses = buildEvidenceStatuses();
 
-    const result = await runPrivateOfficeWorkflow({
+    const result = runPrivateOfficeWorkflow({
       workflowId: "contractor-dispute",
       documentId: "doc-1",
       text: "Contract dated January 15, 2026.",
@@ -185,10 +185,10 @@ describe("canonical Private Office workflow dispatcher", () => {
     expect(result.errors.some((e) => e.includes("approval"))).toBe(true);
   });
 
-  it("returns draftHash as null in the result (computed by caller)", async () => {
+  it("returns draftHash as null in the result (computed by caller)", () => {
     const evidenceStatuses = buildEvidenceStatuses();
 
-    const result = await runPrivateOfficeWorkflow({
+    const result = runPrivateOfficeWorkflow({
       workflowId: "contractor-dispute",
       documentId: "doc-1",
       text: "Contract dated January 15, 2026.",
@@ -207,7 +207,7 @@ describe("canonical Private Office workflow dispatcher", () => {
 });
 
 describe("workflow registration consistency", () => {
-  it("every registered workflow has a matching profile", async () => {
+  it("every registered workflow has a matching profile", () => {
     for (const id of Object.keys(workflows) as Array<keyof typeof workflows>) {
       expect(workflowProfiles[id]).toBeDefined();
       expect(workflowProfiles[id].id).toBe(id);

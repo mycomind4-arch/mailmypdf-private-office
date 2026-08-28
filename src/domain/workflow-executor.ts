@@ -8,7 +8,6 @@ import {
 } from "./gold-standard";
 import { getWorkflowProfile } from "./workflow-profiles";
 import type { WorkflowId } from "./workflows";
-import { enrichWithLLMIntelligence } from "./llm-intelligence";
 
 export interface WorkflowExecutionInput {
   workflowId: WorkflowId;
@@ -17,10 +16,6 @@ export interface WorkflowExecutionInput {
   facts?: Record<string, string | undefined>;
   evidenceStatuses?: Record<string, EvidenceItem["status"]>;
   objective?: string;
-  /** Matter ID for LLM provenance tracking */
-  matterId?: string;
-  /** Whether to enable LLM enrichment (default: true if LLM available) */
-  enableLLM?: boolean;
 }
 
 export interface WorkflowConsequentialState {
@@ -49,11 +44,6 @@ export interface WorkflowExecutionResult {
   blocked: boolean;
   errors: string[];
   warnings: string[];
-  /** LLM enrichment metadata */
-  llmEnriched: boolean;
-  llmProvidersConsulted: string[];
-  llmFallbackUsed: boolean;
-  llmError: string | null;
 }
 
 function generateDraft(
@@ -69,10 +59,7 @@ function generateDraft(
 
   const confirmedFacts =
     analysis.facts
-      .map((fact) => {
-        const prov = fact.provenance !== "user_provided" ? ` (${fact.provenance})` : "";
-        return `- ${fact.label}: ${fact.value}${prov}`;
-      })
+      .map((fact) => `- ${fact.label}: ${fact.value}`)
       .join("\n") || "- [Facts to be completed]";
 
   const evidence =
@@ -174,21 +161,15 @@ export function getWorkflowProfile(id: WorkflowId) {
 
 import { workflowProfiles } from "./workflow-profiles";
 
-export async function runProfiledWorkflow(
+export function runProfiledWorkflow(
   input: WorkflowExecutionInput,
   consequential?: WorkflowConsequentialState | null,
-): Promise<WorkflowExecutionResult> {
+): WorkflowExecutionResult {
   const profile = getWorkflowProfile(input.workflowId);
   const stages: WorkflowExecutionResult["stages"] = [];
   const errors: string[] = [];
   const warnings: string[] = [];
   let blocked = false;
-
-  // LLM enrichment metadata
-  let llmEnriched = false;
-  let llmProvidersConsulted: string[] = [];
-  let llmFallbackUsed = false;
-  let llmError: string | null = null;
 
   // secure-ingest
   stages.push({
@@ -202,8 +183,8 @@ export async function runProfiledWorkflow(
     errors.push("secure-ingest: source document required");
   }
 
-  // analyze (deterministic — always runs first)
-  let analysis = analyzeMatterWorkflowInput({
+  // analyze
+  const analysis = analyzeMatterWorkflowInput({
     documentId: input.documentId,
     text: input.text,
     profile,
@@ -211,67 +192,6 @@ export async function runProfiledWorkflow(
     evidenceStatuses: input.evidenceStatuses,
     objective: input.objective,
   });
-
-  // LLM intelligence enrichment (advisory — never overrides deterministic)
-  if (input.enableLLM !== false && input.text.trim()) {
-    try {
-      const enrichment = await enrichWithLLMIntelligence({
-        workflowId: input.workflowId,
-        matterId: input.matterId,
-        documentId: input.documentId,
-        text: input.text,
-        profile,
-        baseAnalysis: analysis,
-        userFacts: input.facts ?? {},
-        evidenceStatuses: input.evidenceStatuses,
-        objective: input.objective,
-      });
-
-      if (enrichment.enriched) {
-        analysis = enrichment.analysis;
-        llmEnriched = true;
-        llmProvidersConsulted = enrichment.providersConsulted;
-        llmFallbackUsed = enrichment.fallbackUsed;
-
-        stages.push({
-          stage: "llm-intelligence",
-          status: "passed",
-          detail: `enriched by ${enrichment.providersConsulted.join(", ")}${enrichment.fallbackUsed ? " (fallback used)" : ""}${enrichment.factConflicts.length > 0 ? `; ${enrichment.factConflicts.length} fact conflict(s)` : ""}`,
-        });
-
-        // LLM conflict findings with requires_verification state will block approval
-        // via the deterministic canApproveMatter gate — no special handling needed.
-      } else if (enrichment.error) {
-        llmError = enrichment.error;
-        stages.push({
-          stage: "llm-intelligence",
-          status: "skipped",
-          detail: `LLM unavailable: ${enrichment.error}`,
-        });
-        // LLM failure does NOT block — deterministic analysis continues
-      } else {
-        stages.push({
-          stage: "llm-intelligence",
-          status: "skipped",
-          detail: "no LLM providers configured",
-        });
-      }
-    } catch (err) {
-      llmError = err instanceof Error ? err.message : "Unknown LLM error";
-      stages.push({
-        stage: "llm-intelligence",
-        status: "skipped",
-        detail: `LLM enrichment failed: ${llmError}`,
-      });
-      // LLM failure does NOT block — deterministic analysis continues
-    }
-  } else {
-    stages.push({
-      stage: "llm-intelligence",
-      status: "skipped",
-      detail: "LLM enrichment disabled",
-    });
-  }
 
   // classify
   stages.push({
@@ -284,14 +204,14 @@ export async function runProfiledWorkflow(
   stages.push({
     stage: "extract",
     status: analysis.facts.length > 0 ? "passed" : "failed",
-    detail: `${analysis.facts.length} facts${llmEnriched ? " (deterministic + LLM)" : ""}`,
+    detail: `${analysis.facts.length} supplied facts`,
   });
 
   // facts-provenance
   stages.push({
     stage: "facts-provenance",
     status: analysis.facts.length > 0 ? "passed" : "failed",
-    detail: "facts retain provenance classification (user_provided, extracted, inferred, llm_generated, externally_sourced)",
+    detail: "facts retain provenance classification (user_provided, extracted, inferred)",
   });
 
   // timeline-deadlines
@@ -305,7 +225,7 @@ export async function runProfiledWorkflow(
   stages.push({
     stage: "issues-discrepancies",
     status: analysis.findings.length > 0 ? "passed" : "failed",
-    detail: `${analysis.findings.length} findings${llmEnriched ? " (includes LLM findings)" : ""}`,
+    detail: `${analysis.findings.length} findings`,
   });
 
   // evidence
@@ -319,14 +239,14 @@ export async function runProfiledWorkflow(
   stages.push({
     stage: "risk",
     status: analysis.risks.length > 0 || analysis.blockingIssues.length === 0 ? "passed" : "failed",
-    detail: `${analysis.risks.length} risks identified${llmEnriched ? " (includes LLM risks)" : ""}`,
+    detail: `${analysis.risks.length} risks identified`,
   });
 
   // strategy
   stages.push({
     stage: "strategy",
     status: analysis.strategy.length > 0 ? "passed" : "failed",
-    detail: `${analysis.strategy.length} strategy points${llmEnriched ? " (includes LLM strategy)" : ""}`,
+    detail: `${analysis.strategy.length} strategy points`,
   });
 
   // blocking-gates
@@ -526,10 +446,6 @@ export async function runProfiledWorkflow(
     blocked,
     errors,
     warnings,
-    llmEnriched,
-    llmProvidersConsulted,
-    llmFallbackUsed,
-    llmError,
   };
 }
 

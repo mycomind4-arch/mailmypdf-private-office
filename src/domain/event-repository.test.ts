@@ -76,7 +76,7 @@ describe("event repository: client fabrication prevention", () => {
     // event_type text not null check (event_type in (...))
     // This is a defense-in-depth layer: even if the application layer is bypassed,
     // the database rejects unknown event types.
-    expect(EVENT_TYPES.length).toBe(26);
+    expect(EVENT_TYPES.length).toBe(18);
   });
 
   it("RLS has NO client-facing insert policy — events are server-authored only", () => {

@@ -26,15 +26,6 @@ export const EVENT_TYPES = [
   "delivery_recorded",
   "proof_recorded",
   "escalation_triggered",
-  // LLM intelligence events
-  "llm_analysis_started",
-  "llm_analysis_completed",
-  "llm_analysis_failed",
-  "llm_provider_fallback",
-  "llm_consensus_completed",
-  "llm_conflict_detected",
-  "llm_output_rejected",
-  "llm_output_accepted",
 ] as const;
 
 export type EventType = (typeof EVENT_TYPES)[number];
