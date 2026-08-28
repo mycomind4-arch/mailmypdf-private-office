@@ -1,18 +1,21 @@
 /**
  * Checkout service — creates Stripe Checkout Sessions with
- * server-authoritative pricing.
- *
- * This module is separate from the TanStack Start server function wrapper
- * so it can be tested without the Supabase auth middleware dependency.
+ * server-authoritative pricing from the canonical @mailmypdf/pricing engine.
  *
  * SECURITY:
- * - Pricing is derived from the trusted workflow profile, not client input.
+ * - Pricing is derived from the canonical pricing profile, not client input.
  * - Matter ownership is verified server-side.
  * - Stripe metadata binds the payment to the exact matter and owner.
  */
 
 import { z } from "zod";
-import { workflowProfiles } from "@/domain/workflow-profiles";
+import {
+  calculateQuote,
+  getWorkflowPricingProfile,
+  serializeQuote,
+  LABELS,
+  type MailClass,
+} from "@mailmypdf/pricing";
 import type { WorkflowId } from "@/domain/workflows";
 import type { StripeAdapter } from "@/platform/stripe-adapter";
 import type { PaymentEvidenceRepository } from "@/domain/payment-evidence";
@@ -34,33 +37,38 @@ export interface CheckoutResult {
 }
 
 /**
- * Compute server-authoritative price from the workflow profile.
+ * Compute server-authoritative price from the canonical pricing engine.
  * Returns the amount in cents (Stripe's unit).
  */
 export function computeCheckoutAmount(
-  workflowId: WorkflowId,
+  workflowId: string,
   mailingMethod: "standard" | "certified" | "registered",
-): { amount: number; currency: string } {
-  const profile = workflowProfiles[workflowId];
+  actualPages: number = 3,
+): { amount: number; currency: string; quoteSnapshot: string | null } {
+  const profile = getWorkflowPricingProfile(workflowId);
   if (!profile)
     throw new Error(`Unknown workflow: ${workflowId}`);
 
-  const mailingCost =
-    mailingMethod === "standard"
-      ? profile.pricing.standardMail
-      : mailingMethod === "certified"
-        ? profile.pricing.certifiedMail
-        : profile.pricing.registeredMail ?? profile.pricing.certifiedMail;
+  if (profile.commercialStatus !== "production")
+    throw new Error(`Workflow ${workflowId} is not available for purchase (status: ${profile.commercialStatus}).`);
 
-  const total = profile.pricing.preparationFee + mailingCost;
-  // Convert to cents — Stripe uses the smallest currency unit
-  return { amount: Math.round(total * 100), currency: "usd" };
+  const mailClass = mailingMethod as MailClass;
+  const quote = calculateQuote({
+    workflowId,
+    verticalId: profile.verticalId,
+    actualPages,
+    mailClass,
+  });
+
+  return {
+    amount: quote.totalCents,
+    currency: "usd",
+    quoteSnapshot: serializeQuote(quote),
+  };
 }
 
 /**
  * Create a Stripe Checkout Session with server-authoritative pricing.
- *
- * Takes injected dependencies for testability.
  */
 export async function createCheckoutSessionInternal(
   ownerId: string,
@@ -85,11 +93,14 @@ export async function createCheckoutSessionInternal(
   if (matter.workflowId !== workflowId)
     throw new Error("Matter does not belong to the specified workflow.");
 
-  // Compute server-authoritative pricing
-  const { amount, currency } = computeCheckoutAmount(
+  // Compute server-authoritative pricing from canonical engine
+  const { amount, currency, quoteSnapshot } = computeCheckoutAmount(
     workflowId,
     validated.mailingMethod,
   );
+
+  const profile = getWorkflowPricingProfile(workflowId);
+  const workflowTitle = profile?.workflowId ?? workflowId;
 
   // Create Stripe checkout session with metadata binding
   const session = await stripeAdapter.createCheckoutSession({
@@ -101,8 +112,11 @@ export async function createCheckoutSessionInternal(
       matterId: validated.matterId,
       ownerId,
       workflowId: validated.workflowId,
+      quoteTotalCents: String(amount),
+      pricingSource: "canonical",
+      quoteSnapshot: quoteSnapshot ?? "",
     },
-    description: `Private Office — ${workflowProfiles[workflowId].title} (${validated.mailingMethod} mail)`,
+    description: `Private Office — ${workflowTitle} (${validated.mailingMethod} mail)`,
   });
 
   // Create pending PaymentEvidence
