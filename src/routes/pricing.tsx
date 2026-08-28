@@ -7,7 +7,7 @@ export const Route = createFileRoute("/pricing")({
   head: () => ({
     meta: [
       { title: "Pricing — Private Office" },
-      { name: "description", content: "Pay for the matter preparation, then choose your mailing. Preparation starts at $29.99. Mailing from $4.99." },
+      { name: "description", content: "Pay for the matter preparation, then choose your mailing. Preparation starts at $24.99. Mailing from $4.99." },
     ],
   }),
   component: PricingPage,
