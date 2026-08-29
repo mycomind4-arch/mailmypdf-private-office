@@ -54,6 +54,9 @@ export const ECOSYSTEM_PRODUCTS: EcosystemProduct[] = [
   { name: "Small Business Mail", slug: "small-business-mail", href: "https://mycomind4-arch-mailmypdf-smallbusiness.pages.dev", description: "Business correspondence, reminders, demands, and compliance", category: "Business", status: "planned" },
   { name: "Private Office", slug: "private-office", href: "https://mycomind4-arch-mailmypdf-private-office.pages.dev", description: "Professional correspondence, provably delivered", category: "Private Office", status: "live" },
   { name: "GovReply", slug: "govreply", href: "https://govreply.pages.dev", description: "Government correspondence, handled", category: "Government / Official", status: "live" },
+  { name: "LegalNav", slug: "legalnav", href: "https://legalnav-app.pages.dev", description: "Legal navigation and rights guidance", category: "Legal", status: "live" },
+  { name: "Proof of Service", slug: "proof-of-service", href: "https://proofofservice-4s1.pages.dev", description: "Certified proof of service documentation", category: "Legal", status: "live" },
+  { name: "Certified Mail", slug: "certified-mail", href: "https://certified-mail-from-pdf.pages.dev", description: "Certified mail from PDF documents", category: "Core", status: "live" },
 ];
 
 export const ECOSYSTEM_PAGE_URL = "https://mailmypdf.pages.dev/products";
