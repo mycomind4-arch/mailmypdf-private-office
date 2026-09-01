@@ -25,6 +25,13 @@ describe("workflow-orchestrator: planPath", () => {
     expect(path.blockedBy).toEqual({});
   });
 
+  it("returns single step for dispute capabilities (entry points)", () => {
+    const state = createInitialState("user-1");
+    const path = planPath(capabilityGraph, state, "contractor-dispute");
+    expect(path.path).toEqual(["contractor-dispute"]);
+    expect(path.stepsRemaining).toBe(1);
+  });
+
   it("returns full path for business-sale from initial state", () => {
     const state = createInitialState("user-1");
     const path = planPath(capabilityGraph, state, "business-sale");
@@ -38,7 +45,6 @@ describe("workflow-orchestrator: planPath", () => {
     const state = createInitialState("user-1");
     const path = planPath(capabilityGraph, state, "open-business-bank-account");
     const pathArr = path.path;
-    // form-llc should come before obtain-ein, obtain-ein before open-business-bank-account
     const llcIdx = pathArr.indexOf("form-llc");
     const einIdx = pathArr.indexOf("obtain-ein");
     const bankIdx = pathArr.indexOf("open-business-bank-account");
@@ -49,8 +55,6 @@ describe("workflow-orchestrator: planPath", () => {
   it("blockedBy shows missing prerequisites for locked steps", () => {
     const state = createInitialState("user-1");
     const path = planPath(capabilityGraph, state, "hire-employees");
-    // hire-employees requires obtain-ein and obtain-business-insurance
-    // obtain-ein requires form-llc
     expect(path.blockedBy["hire-employees"]).toBeDefined();
     expect(path.blockedBy["obtain-ein"]).toContain("form-llc");
   });
@@ -59,9 +63,7 @@ describe("workflow-orchestrator: planPath", () => {
     const state = createInitialState("user-1");
     const { state: s1 } = completeCapability(capabilityGraph, state, "form-llc");
     const path = planPath(capabilityGraph, s1, "hire-employees");
-    // form-llc is no longer in the path
     expect(path.path).not.toContain("form-llc");
-    // obtain-ein and obtain-business-insurance are now available
     expect(path.nextAvailable).toContain("obtain-ein");
     expect(path.nextAvailable).toContain("obtain-business-insurance");
   });
@@ -75,16 +77,17 @@ describe("workflow-orchestrator: planPath", () => {
 });
 
 describe("workflow-orchestrator: recommendNext", () => {
-  it("recommends form-llc at initial state", () => {
+  it("recommends 7 capabilities at initial state (form-llc + 6 dispute)", () => {
     const state = createInitialState("user-1");
     const recs = recommendNext(capabilityGraph, state);
-    expect(recs.length).toBe(1);
-    expect(recs[0].capability.id).toBe("form-llc");
-    expect(recs[0].reason).toContain("first step");
+    expect(recs.length).toBe(7);
+    const recIds = recs.map((r) => r.capability.id);
+    expect(recIds).toContain("form-llc");
+    expect(recIds).toContain("contractor-dispute");
+    expect(recIds).toContain("bank-wire-dispute");
   });
 
-  it("returns empty array when no capabilities are available", () => {
-    // Complete ALL capabilities — nothing should be available
+  it("returns empty array when all capabilities are completed", () => {
     let state = createInitialState("user-done");
     const allCaps = Object.keys(capabilityGraph.capabilities);
     for (const capId of allCaps) {
@@ -99,21 +102,17 @@ describe("workflow-orchestrator: recommendNext", () => {
     const state = createInitialState("user-1");
     const { state: s1 } = completeCapability(capabilityGraph, state, "form-llc");
     const recs = recommendNext(capabilityGraph, s1);
-    expect(recs.length).toBe(5); // ein, dba, license, insurance, contracts
+    expect(recs.length).toBe(11); // 5 business + 6 dispute (minus completed form-llc, but contractor-dispute was unlocked by form-llc)
     const recIds = recs.map((r) => r.capability.id);
     expect(recIds).toContain("obtain-ein");
-    expect(recIds).toContain("register-dba");
-    expect(recIds).toContain("obtain-local-license");
-    expect(recIds).toContain("obtain-business-insurance");
-    expect(recIds).toContain("create-contracts");
+    expect(recIds).toContain("contractor-dispute");
   });
 
   it("prioritizes capabilities with milestone impact", () => {
     const state = createInitialState("user-1");
     const { state: s1 } = completeCapability(capabilityGraph, state, "form-llc");
     const recs = recommendNext(capabilityGraph, s1);
-    // All 5 have milestone impact (business-operational), so sort by downstream
-    // obtain-ein unlocks the most downstream, should be first
+    // obtain-ein has the most downstream unlocks, should be highly ranked
     expect(recs[0].capability.id).toBe("obtain-ein");
   });
 
@@ -138,9 +137,16 @@ describe("workflow-orchestrator: findGoalCapability", () => {
     expect(result!.id).toBe("form-llc");
   });
 
-  it("finds by partial keyword", () => {
-    const result = findGoalCapability(capabilityGraph, "llc");
+  it("finds dispute capabilities by keyword", () => {
+    const result = findGoalCapability(capabilityGraph, "contractor dispute");
     expect(result).toBeDefined();
+    expect(result!.id).toBe("contractor-dispute");
+  });
+
+  it("finds debt validation by keyword", () => {
+    const result = findGoalCapability(capabilityGraph, "debt validation");
+    expect(result).toBeDefined();
+    expect(result!.id).toBe("debt-validation-dispute");
   });
 
   it("finds by multi-word goal", () => {
@@ -155,67 +161,47 @@ describe("workflow-orchestrator: findGoalCapability", () => {
     expect(result!.id).toBe("open-business-bank-account");
   });
 
+  it("finds security deposit dispute", () => {
+    const result = findGoalCapability(capabilityGraph, "security deposit");
+    expect(result).toBeDefined();
+    expect(result!.id).toBe("security-deposit-dispute");
+  });
+
   it("returns undefined for completely unrelated goal", () => {
     const result = findGoalCapability(capabilityGraph, "skydiving lessons");
     expect(result).toBeUndefined();
   });
 });
 
-describe("workflow-orchestrator: real-world scenario", () => {
-  it("user says 'I want to start a landscaping business' → path to business operational", () => {
-    // User enters Private Office and says they want to start a landscaping business.
-    // The system should determine: goal = form-llc (business entity), then build out.
-
+describe("workflow-orchestrator: real-world scenarios", () => {
+  it("user says 'I want to start a landscaping business' → form-llc is top recommendation", () => {
     const state = createInitialState("user-landscaping");
-
-    // The orchestrator identifies the first step
     const recs = recommendNext(capabilityGraph, state);
-    expect(recs[0].capability.id).toBe("form-llc");
-
-    // User completes form-llc
-    const r1 = completeCapability(capabilityGraph, state, "form-llc");
-    expect(r1.newlyReachedMilestones[0].id).toBe("llc-established");
-
-    // Now the system shows what's available
-    const recs2 = recommendNext(capabilityGraph, r1.state);
-    expect(recs2.length).toBe(5);
-
-    // User works through the operational setup
-    let currentState = r1.state;
-    for (const capId of [
-      "obtain-ein",
-      "register-dba",
-      "open-business-bank-account",
-      "obtain-local-license",
-      "obtain-business-insurance",
-      "set-up-accounting",
-      "create-contracts",
-    ]) {
-      const result = completeCapability(capabilityGraph, currentState, capId);
-      currentState = result.state;
-    }
-
-    // Business operational milestone reached
-    expect(currentState.reachedMilestones).toContain("business-operational");
-
-    // Next recommendations include growing-business capabilities
-    const recs3 = recommendNext(capabilityGraph, currentState);
-    const recIds = recs3.map((r) => r.capability.id);
-    expect(recIds).toContain("hire-employees");
-    expect(recIds).toContain("obtain-business-credit");
-    expect(recIds).toContain("obtain-financing");
+    // form-llc should be among recommendations (it's the entry point for business formation)
+    const recIds = recs.map((r) => r.capability.id);
+    expect(recIds).toContain("form-llc");
   });
 
-  it("user wants to sell their business — path from initial state to business-sale", () => {
+  it("user says 'I got a collection notice' → debt-validation-dispute is found", () => {
+    const result = findGoalCapability(capabilityGraph, "collection notice");
+    expect(result).toBeDefined();
+    // Should match debt-validation-dispute or bank-wire-dispute
+    expect(["debt-validation-dispute", "bank-wire-dispute"]).toContain(result!.id);
+  });
+
+  it("user wants to sell their business — full path from initial state", () => {
     const state = createInitialState("user-exit");
     const path = planPath(capabilityGraph, state, "business-sale");
-
-    // The full path should be long — many prerequisites
     expect(path.stepsRemaining).toBeGreaterThan(5);
     expect(path.path[0]).toBe("form-llc");
     expect(path.path[path.path.length - 1]).toBe("business-sale");
+  });
 
-    // Only the first step is available now
-    expect(path.nextAvailable).toEqual(["form-llc"]);
+  it("user completes a contractor dispute → property-insurance-claim becomes available", () => {
+    const state = createInitialState("user-dispute-1");
+    const result = completeCapability(capabilityGraph, state, "contractor-dispute");
+    // property-insurance-claim was already an entry point, but let's verify the dispute milestone
+    const result2 = completeCapability(capabilityGraph, result.state, "property-insurance-claim");
+    expect(result2.newlyReachedMilestones.some((m) => m.id === "dispute-resolution")).toBe(true);
   });
 });

@@ -45,6 +45,8 @@ export interface Capability {
   unlocks: string[];
   /** Milestone this capability contributes to (all must be completed to reach milestone) */
   milestoneId?: string;
+  /** Whether this is a reactive/defensive capability (vs. proactive/building) */
+  reactive?: boolean;
 }
 
 /**
@@ -71,7 +73,7 @@ export interface CapabilityGraph {
   entryPoints: string[];
 }
 
-// ─── Graph Definition ────────────────────────────────────────────────
+// ─── Business Formation Vertical ─────────────────────────────────────
 
 const businessFormationCapabilities: Capability[] = [
   // ── Entry point ──
@@ -91,6 +93,7 @@ const businessFormationCapabilities: Capability[] = [
       "obtain-business-insurance",
       "set-up-accounting",
       "create-contracts",
+      "contractor-dispute",
     ],
     milestoneId: "llc-established",
   },
@@ -278,6 +281,89 @@ const businessFormationCapabilities: Capability[] = [
   },
 ];
 
+// ─── Dispute & Defense Vertical (existing Gold Standard workflows) ───
+
+const disputeDefenseCapabilities: Capability[] = [
+  {
+    id: "contractor-dispute",
+    title: "Contractor Dispute",
+    description:
+      "Prepare a documented contractor dispute letter for defective work, incomplete work, billing disputes, or breach of agreement.",
+    vertical: "private-office",
+    family: "Property Disputes",
+    workflowId: "contractor-dispute",
+    prerequisites: [],
+    unlocks: ["property-insurance-claim"],
+    reactive: true,
+    milestoneId: "dispute-resolution",
+  },
+  {
+    id: "property-insurance-claim",
+    title: "Property Insurance Claim",
+    description:
+      "Document and pursue a property insurance claim — denied claims, underpayments, disputed scope, or supplemental claims.",
+    vertical: "private-office",
+    family: "Property Disputes",
+    workflowId: "property-insurance-claim",
+    prerequisites: [],
+    unlocks: [],
+    reactive: true,
+    milestoneId: "dispute-resolution",
+  },
+  {
+    id: "bank-wire-dispute",
+    title: "Bank & Wire Transfer Dispute",
+    description:
+      "Document a bank or wire transfer dispute — unauthorized wires, mistaken transfers, beneficiary errors, or disputed transactions.",
+    vertical: "private-office",
+    family: "Financial Defense",
+    workflowId: "bank-wire-dispute",
+    prerequisites: [],
+    unlocks: ["debt-validation-dispute"],
+    reactive: true,
+    milestoneId: "financial-protection",
+  },
+  {
+    id: "debt-validation-dispute",
+    title: "Debt Validation Dispute",
+    description:
+      "Document a debt validation dispute under the FDCPA — disputed debt, request for validation, unauthorized collection, or time-barred debt.",
+    vertical: "private-office",
+    family: "Financial Defense",
+    workflowId: "debt-validation-dispute",
+    prerequisites: [],
+    unlocks: [],
+    reactive: true,
+    milestoneId: "financial-protection",
+  },
+  {
+    id: "trust-beneficiary-notice",
+    title: "Trust Beneficiary Notice",
+    description:
+      "Document a trust beneficiary matter — request for information, accounting, distribution status, or trustee communication.",
+    vertical: "private-office",
+    family: "Trust & Estate",
+    workflowId: "trust-beneficiary-notice",
+    prerequisites: [],
+    unlocks: [],
+    reactive: true,
+  },
+  {
+    id: "security-deposit-dispute",
+    title: "Security Deposit Dispute",
+    description:
+      "Document a security deposit dispute — non-return, partial return, unauthorized deductions, or disputed damage charges.",
+    vertical: "private-office",
+    family: "Property Disputes",
+    workflowId: "security-deposit-dispute",
+    prerequisites: [],
+    unlocks: [],
+    reactive: true,
+  },
+];
+
+// ─── Milestones ──────────────────────────────────────────────────────
+
 const businessFormationMilestones: CapabilityMilestone[] = [
   {
     id: "llc-established",
@@ -340,6 +426,22 @@ const businessFormationMilestones: CapabilityMilestone[] = [
     ],
     unlocks: [],
   },
+  {
+    id: "dispute-resolution",
+    title: "Dispute Resolution",
+    description:
+      "Property disputes documented and pursued — contractor issues and insurance claims addressed.",
+    capabilities: ["contractor-dispute", "property-insurance-claim"],
+    unlocks: [],
+  },
+  {
+    id: "financial-protection",
+    title: "Financial Protection",
+    description:
+      "Financial defense matters resolved — bank/wire disputes and debt validation addressed.",
+    capabilities: ["bank-wire-dispute", "debt-validation-dispute"],
+    unlocks: [],
+  },
 ];
 
 // ─── Graph Construction ──────────────────────────────────────────────
@@ -370,7 +472,7 @@ function buildGraph(
 }
 
 export const capabilityGraph: CapabilityGraph = buildGraph(
-  businessFormationCapabilities,
+  [...businessFormationCapabilities, ...disputeDefenseCapabilities],
   businessFormationMilestones,
 );
 
@@ -397,6 +499,14 @@ export function getMilestone(
   return graph.milestones[id];
 }
 
+export function getReactiveCapabilities(graph: CapabilityGraph): Capability[] {
+  return Object.values(graph.capabilities).filter((c) => c.reactive === true);
+}
+
+export function getProactiveCapabilities(graph: CapabilityGraph): Capability[] {
+  return Object.values(graph.capabilities).filter((c) => c.reactive !== true);
+}
+
 /**
  * Validates the graph for integrity:
  * - All prerequisite references point to existing capabilities
@@ -408,25 +518,21 @@ export function validateGraph(graph: CapabilityGraph): string[] {
   const errors: string[] = [];
 
   for (const cap of Object.values(graph.capabilities)) {
-    // Check prerequisites
     for (const prereq of cap.prerequisites) {
       if (!graph.capabilities[prereq]) {
         errors.push(`Capability "${cap.id}" has unknown prerequisite "${prereq}"`);
       }
     }
-    // Check unlocks
     for (const unlock of cap.unlocks) {
       if (!graph.capabilities[unlock]) {
         errors.push(`Capability "${cap.id}" unlocks unknown capability "${unlock}"`);
       }
     }
-    // Check milestone reference
     if (cap.milestoneId && !graph.milestones[cap.milestoneId]) {
       errors.push(`Capability "${cap.id}" references unknown milestone "${cap.milestoneId}"`);
     }
   }
 
-  // Check milestone capability references
   for (const ms of Object.values(graph.milestones)) {
     for (const capId of ms.capabilities) {
       if (!graph.capabilities[capId]) {
