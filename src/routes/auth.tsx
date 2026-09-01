@@ -108,6 +108,25 @@ function AuthPage() {
                 {!loading && <ArrowRight size={16} />}
               </button>
             </form>
+          {mode !== "reset" && mode !== "magic" && (
+            <div className="mt-5">
+              <div className="relative flex items-center gap-3">
+                <div className="h-px flex-1 bg-border" />
+                <span className="text-xs text-muted-foreground">or</span>
+                <div className="h-px flex-1 bg-border" />
+              </div>
+              <button
+                type="button"
+                onClick={() => redirectToHubSSO(window.location.origin + "/dashboard")}
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted/50"
+              >
+                Continue with MailMyPDF Account
+              </button>
+              <p className="mt-2 text-center text-xs text-muted-foreground">
+                One account works across all MailMyPDF products.
+              </p>
+            </div>
+          )}
             <div className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-sm">
               {mode !== "signin" && (
                 <button onClick={() => { setMode("signin"); setError(null); setInfo(null); }} className="btn-ghost">
