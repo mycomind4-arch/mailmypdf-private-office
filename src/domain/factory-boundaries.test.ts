@@ -12,13 +12,18 @@
  *
  * They verify structural isolation: no workflow imports infrastructure
  * directly, and all infrastructure is shared across all workflows.
+ *
+ * Routes delegate to WorkflowAuthorityPage (the shared component), which
+ * internally uses runPrivateOfficeWorkflow (the shared engine) and
+ * workflowProfiles (the shared profile registry). The boundary is maintained
+ * through composition, not direct imports in each route file.
  */
 
 import { describe, expect, it } from "vitest";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-describe("factory boundary: no workflow-specific infrastructure", () => {
+describe("factory boundary: no workflow-specific infrastructure in routes", () => {
   const routeDir = "src/routes/workflows";
   const routeFiles = readdirSync(routeDir).filter(
     (f) => f.endsWith(".tsx") && f !== "index.tsx",
@@ -77,18 +82,50 @@ describe("factory boundary: no workflow-specific infrastructure", () => {
       expect(content).not.toContain("Supabase");
     });
 
-    it(`${file} uses the shared workflow engine`, () => {
-      expect(content).toContain("runPrivateOfficeWorkflow");
-    });
-
-    it(`${file} uses the shared WorkflowResults component`, () => {
-      expect(content).toContain("WorkflowResults");
-    });
-
-    it(`${file} uses the shared profile registry`, () => {
-      expect(content).toContain("workflowProfiles");
+    it(`${file} uses the shared WorkflowAuthorityPage component`, () => {
+      expect(content).toContain("WorkflowAuthorityPage");
     });
   }
+});
+
+describe("factory boundary: shared component uses shared infrastructure", () => {
+  const sharedContent = readFileSync(
+    "src/components/workflow-authority-page.tsx",
+    "utf-8",
+  );
+
+  it("workflow-authority-page.tsx uses the shared workflow engine", () => {
+    expect(sharedContent).toContain("runPrivateOfficeWorkflow");
+  });
+
+  it("workflow-authority-page.tsx uses the shared profile registry", () => {
+    expect(sharedContent).toContain("workflowProfiles");
+  });
+
+  it("workflow-authority-page.tsx does not import fulfillment", () => {
+    expect(sharedContent).not.toMatch(/import.*fulfillment/);
+  });
+
+  it("workflow-authority-page.tsx does not import authorization", () => {
+    expect(sharedContent).not.toContain("authorization");
+    expect(sharedContent).not.toContain("canAuthorize");
+    expect(sharedContent).not.toContain("canApproveMatter");
+  });
+
+  it("workflow-authority-page.tsx does not import Gemini", () => {
+    expect(sharedContent).not.toContain("gemini");
+    expect(sharedContent).not.toContain("Gemini");
+  });
+
+  it("workflow-authority-page.tsx does not import LLM adapter", () => {
+    expect(sharedContent).not.toContain("llm-adapter");
+    expect(sharedContent).not.toContain("LLMAdapter");
+  });
+
+  it("workflow-authority-page.tsx does not import Supabase", () => {
+    expect(sharedContent).not.toContain("supabase");
+    expect(sharedContent).not.toContain("Supabase");
+  });
 });
 
 describe("factory boundary: workflow profiles do not import infrastructure", () => {

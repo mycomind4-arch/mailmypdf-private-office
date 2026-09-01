@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CapabilitiesRouteImport } from './routes/capabilities'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as MailAPdfRouteImport } from './routes/mail-a-pdf'
@@ -21,6 +22,7 @@ import { Route as StartRouteImport } from './routes/start'
 import { Route as WorkflowsIndexRouteImport } from './routes/workflows/index'
 import { Route as WorkflowsBankWireDisputeRouteImport } from './routes/workflows/bank-wire-dispute'
 import { Route as WorkflowsContractorDisputeRouteImport } from './routes/workflows/contractor-dispute'
+import { Route as WorkflowsDebtValidationDisputeRouteImport } from './routes/workflows/debt-validation-dispute'
 import { Route as WorkflowsPropertyInsuranceClaimRouteImport } from './routes/workflows/property-insurance-claim'
 import { Route as WorkflowsSecurityDepositDisputeRouteImport } from './routes/workflows/security-deposit-dispute'
 import { Route as WorkflowsTrustBeneficiaryNoticeRouteImport } from './routes/workflows/trust-beneficiary-notice'
@@ -38,6 +40,11 @@ const AccountRoute = AccountRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CapabilitiesRoute = CapabilitiesRouteImport.update({
+  id: '/capabilities',
+  path: '/capabilities',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -87,6 +94,12 @@ const WorkflowsContractorDisputeRoute =
     path: '/workflows/contractor-dispute',
     getParentRoute: () => rootRouteImport,
   } as any)
+const WorkflowsDebtValidationDisputeRoute =
+  WorkflowsDebtValidationDisputeRouteImport.update({
+    id: '/workflows/debt-validation-dispute',
+    path: '/workflows/debt-validation-dispute',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const WorkflowsPropertyInsuranceClaimRoute =
   WorkflowsPropertyInsuranceClaimRouteImport.update({
     id: '/workflows/property-insurance-claim',
@@ -110,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
   '/auth': typeof AuthRoute
+  '/capabilities': typeof CapabilitiesRoute
   '/dashboard': typeof DashboardRoute
   '/how-it-works': typeof HowItWorksRoute
   '/mail-a-pdf': typeof MailAPdfRoute
@@ -118,6 +132,7 @@ export interface FileRoutesByFullPath {
   '/start': typeof StartRoute
   '/workflows/bank-wire-dispute': typeof WorkflowsBankWireDisputeRoute
   '/workflows/contractor-dispute': typeof WorkflowsContractorDisputeRoute
+  '/workflows/debt-validation-dispute': typeof WorkflowsDebtValidationDisputeRoute
   '/workflows/property-insurance-claim': typeof WorkflowsPropertyInsuranceClaimRoute
   '/workflows/security-deposit-dispute': typeof WorkflowsSecurityDepositDisputeRoute
   '/workflows/trust-beneficiary-notice': typeof WorkflowsTrustBeneficiaryNoticeRoute
@@ -127,6 +142,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
   '/auth': typeof AuthRoute
+  '/capabilities': typeof CapabilitiesRoute
   '/dashboard': typeof DashboardRoute
   '/how-it-works': typeof HowItWorksRoute
   '/mail-a-pdf': typeof MailAPdfRoute
@@ -135,6 +151,7 @@ export interface FileRoutesByTo {
   '/start': typeof StartRoute
   '/workflows/bank-wire-dispute': typeof WorkflowsBankWireDisputeRoute
   '/workflows/contractor-dispute': typeof WorkflowsContractorDisputeRoute
+  '/workflows/debt-validation-dispute': typeof WorkflowsDebtValidationDisputeRoute
   '/workflows/property-insurance-claim': typeof WorkflowsPropertyInsuranceClaimRoute
   '/workflows/security-deposit-dispute': typeof WorkflowsSecurityDepositDisputeRoute
   '/workflows/trust-beneficiary-notice': typeof WorkflowsTrustBeneficiaryNoticeRoute
@@ -145,6 +162,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
   '/auth': typeof AuthRoute
+  '/capabilities': typeof CapabilitiesRoute
   '/dashboard': typeof DashboardRoute
   '/how-it-works': typeof HowItWorksRoute
   '/mail-a-pdf': typeof MailAPdfRoute
@@ -153,6 +171,7 @@ export interface FileRoutesById {
   '/start': typeof StartRoute
   '/workflows/bank-wire-dispute': typeof WorkflowsBankWireDisputeRoute
   '/workflows/contractor-dispute': typeof WorkflowsContractorDisputeRoute
+  '/workflows/debt-validation-dispute': typeof WorkflowsDebtValidationDisputeRoute
   '/workflows/property-insurance-claim': typeof WorkflowsPropertyInsuranceClaimRoute
   '/workflows/security-deposit-dispute': typeof WorkflowsSecurityDepositDisputeRoute
   '/workflows/trust-beneficiary-notice': typeof WorkflowsTrustBeneficiaryNoticeRoute
@@ -164,6 +183,7 @@ export interface FileRouteTypes {
     | '/'
     | '/account'
     | '/auth'
+    | '/capabilities'
     | '/dashboard'
     | '/how-it-works'
     | '/mail-a-pdf'
@@ -172,6 +192,7 @@ export interface FileRouteTypes {
     | '/start'
     | '/workflows/bank-wire-dispute'
     | '/workflows/contractor-dispute'
+    | '/workflows/debt-validation-dispute'
     | '/workflows/property-insurance-claim'
     | '/workflows/security-deposit-dispute'
     | '/workflows/trust-beneficiary-notice'
@@ -181,6 +202,7 @@ export interface FileRouteTypes {
     | '/'
     | '/account'
     | '/auth'
+    | '/capabilities'
     | '/dashboard'
     | '/how-it-works'
     | '/mail-a-pdf'
@@ -189,6 +211,7 @@ export interface FileRouteTypes {
     | '/start'
     | '/workflows/bank-wire-dispute'
     | '/workflows/contractor-dispute'
+    | '/workflows/debt-validation-dispute'
     | '/workflows/property-insurance-claim'
     | '/workflows/security-deposit-dispute'
     | '/workflows/trust-beneficiary-notice'
@@ -198,6 +221,7 @@ export interface FileRouteTypes {
     | '/'
     | '/account'
     | '/auth'
+    | '/capabilities'
     | '/dashboard'
     | '/how-it-works'
     | '/mail-a-pdf'
@@ -206,6 +230,7 @@ export interface FileRouteTypes {
     | '/start'
     | '/workflows/bank-wire-dispute'
     | '/workflows/contractor-dispute'
+    | '/workflows/debt-validation-dispute'
     | '/workflows/property-insurance-claim'
     | '/workflows/security-deposit-dispute'
     | '/workflows/trust-beneficiary-notice'
@@ -216,6 +241,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountRoute: typeof AccountRoute
   AuthRoute: typeof AuthRoute
+  CapabilitiesRoute: typeof CapabilitiesRoute
   DashboardRoute: typeof DashboardRoute
   HowItWorksRoute: typeof HowItWorksRoute
   MailAPdfRoute: typeof MailAPdfRoute
@@ -224,6 +250,7 @@ export interface RootRouteChildren {
   StartRoute: typeof StartRoute
   WorkflowsBankWireDisputeRoute: typeof WorkflowsBankWireDisputeRoute
   WorkflowsContractorDisputeRoute: typeof WorkflowsContractorDisputeRoute
+  WorkflowsDebtValidationDisputeRoute: typeof WorkflowsDebtValidationDisputeRoute
   WorkflowsPropertyInsuranceClaimRoute: typeof WorkflowsPropertyInsuranceClaimRoute
   WorkflowsSecurityDepositDisputeRoute: typeof WorkflowsSecurityDepositDisputeRoute
   WorkflowsTrustBeneficiaryNoticeRoute: typeof WorkflowsTrustBeneficiaryNoticeRoute
@@ -251,6 +278,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/capabilities': {
+      id: '/capabilities'
+      path: '/capabilities'
+      fullPath: '/capabilities'
+      preLoaderRoute: typeof CapabilitiesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -316,6 +350,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkflowsContractorDisputeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/workflows/debt-validation-dispute': {
+      id: '/workflows/debt-validation-dispute'
+      path: '/workflows/debt-validation-dispute'
+      fullPath: '/workflows/debt-validation-dispute'
+      preLoaderRoute: typeof WorkflowsDebtValidationDisputeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/workflows/property-insurance-claim': {
       id: '/workflows/property-insurance-claim'
       path: '/workflows/property-insurance-claim'
@@ -344,6 +385,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRoute: AccountRoute,
   AuthRoute: AuthRoute,
+  CapabilitiesRoute: CapabilitiesRoute,
   DashboardRoute: DashboardRoute,
   HowItWorksRoute: HowItWorksRoute,
   MailAPdfRoute: MailAPdfRoute,
@@ -352,6 +394,7 @@ const rootRouteChildren: RootRouteChildren = {
   StartRoute: StartRoute,
   WorkflowsBankWireDisputeRoute: WorkflowsBankWireDisputeRoute,
   WorkflowsContractorDisputeRoute: WorkflowsContractorDisputeRoute,
+  WorkflowsDebtValidationDisputeRoute: WorkflowsDebtValidationDisputeRoute,
   WorkflowsPropertyInsuranceClaimRoute: WorkflowsPropertyInsuranceClaimRoute,
   WorkflowsSecurityDepositDisputeRoute: WorkflowsSecurityDepositDisputeRoute,
   WorkflowsTrustBeneficiaryNoticeRoute: WorkflowsTrustBeneficiaryNoticeRoute,

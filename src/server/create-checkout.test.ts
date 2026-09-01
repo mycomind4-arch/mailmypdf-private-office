@@ -3,7 +3,6 @@ import {
   computeCheckoutAmount,
   createCheckoutSessionInternal,
 } from "@/services/checkout-service";
-import { workflowProfiles } from "@/domain/workflow-profiles";
 import type { WorkflowId } from "@/domain/workflows";
 
 // ── Server-authoritative pricing ─────────────────────────────────────────
@@ -14,11 +13,8 @@ describe("computeCheckoutAmount: server-authoritative pricing", () => {
       "contractor-dispute",
       "certified",
     );
-    const profile = workflowProfiles["contractor-dispute"];
-    const expected = Math.round(
-      (profile.pricing.preparationFee + profile.pricing.certifiedMail) * 100,
-    );
-    expect(amount).toBe(expected);
+    // Canonical pricing from @mailmypdf/pricing: base $49.99 + certified surcharge $9.95 = $59.94
+    expect(amount).toBe(5994);
     expect(currency).toBe("usd");
   });
 
@@ -27,11 +23,8 @@ describe("computeCheckoutAmount: server-authoritative pricing", () => {
       "property-insurance-claim",
       "standard",
     );
-    const profile = workflowProfiles["property-insurance-claim"];
-    const expected = Math.round(
-      (profile.pricing.preparationFee + profile.pricing.standardMail) * 100,
-    );
-    expect(amount).toBe(expected);
+    // Canonical pricing from @mailmypdf/pricing: base $39.99 + standard mail $4.99 = $44.98
+    expect(amount).toBe(4498);
   });
 
   it("computes preparation fee + registered mail for bank-wire-dispute", () => {
@@ -39,11 +32,8 @@ describe("computeCheckoutAmount: server-authoritative pricing", () => {
       "bank-wire-dispute",
       "registered",
     );
-    const profile = workflowProfiles["bank-wire-dispute"];
-    const expected = Math.round(
-      (profile.pricing.preparationFee + (profile.pricing.registeredMail ?? profile.pricing.certifiedMail)) * 100,
-    );
-    expect(amount).toBe(expected);
+    // Canonical pricing from @mailmypdf/pricing: base $49.99 + registered surcharge $27.50 = $77.49
+    expect(amount).toBe(7749);
   });
 
   it("returns amounts in cents (not dollars)", () => {
@@ -51,8 +41,8 @@ describe("computeCheckoutAmount: server-authoritative pricing", () => {
       "contractor-dispute",
       "certified",
     );
-    // 24.99 + 12.99 = 37.98 → 3798 cents
-    expect(amount).toBe(3798);
+    // $49.99 base + $9.95 certified surcharge = $59.94 → 5994 cents
+    expect(amount).toBe(5994);
   });
 
   it("throws on unknown workflow", () => {
@@ -125,7 +115,7 @@ describe("createCheckoutSessionInternal", () => {
       workflowId: "contractor-dispute",
       stripeSessionId: "cs_test_123",
       stripePaymentIntentId: "pi_test_123",
-      amount: 3798,
+      amount: 5994,
       currency: "usd",
       status: "pending",
       verifiedAt: null,
@@ -154,15 +144,18 @@ describe("createCheckoutSessionInternal", () => {
 
     // Verify server-authoritative pricing was used
     const createCall = mockStripeAdapter.createCheckoutSession.mock.calls[0][0];
-    expect(createCall.amount).toBe(3798); // $24.99 + $12.99 = $37.98 → 3798 cents
+    expect(createCall.amount).toBe(5994); // $49.99 base + $9.95 certified surcharge = $59.94 → 5994 cents
     expect(createCall.currency).toBe("usd");
 
     // Verify metadata binds to exact matter and owner
-    expect(createCall.metadata).toEqual({
+    // The checkout service adds pricingSource, quoteSnapshot, and quoteTotalCents
+    expect(createCall.metadata).toMatchObject({
       matterId: "matter-1",
       ownerId: "user-1",
       workflowId: "contractor-dispute",
     });
+    expect(createCall.metadata.pricingSource).toBe("canonical");
+    expect(createCall.metadata.quoteTotalCents).toBe("5994");
 
     // Verify PaymentEvidence was created
     expect(mockPaymentEvidenceRepo.create).toHaveBeenCalledWith({
@@ -171,7 +164,7 @@ describe("createCheckoutSessionInternal", () => {
       workflowId: "contractor-dispute",
       stripeSessionId: "cs_test_123",
       stripePaymentIntentId: "pi_test_123",
-      amount: 3798,
+      amount: 5994,
       currency: "usd",
     });
   });
@@ -289,12 +282,9 @@ describe("createCheckoutSessionInternal", () => {
       },
     );
 
-    // Verify the amount sent to Stripe is the profile-derived amount
+    // Verify the amount sent to Stripe is the server-derived amount
+    // Canonical pricing: $49.99 base (standard mail is included, no surcharge)
     const createCall = mockStripeAdapter.createCheckoutSession.mock.calls[0][0];
-    const profile = workflowProfiles["contractor-dispute"];
-    const expected = Math.round(
-      (profile.pricing.preparationFee + profile.pricing.standardMail) * 100,
-    );
-    expect(createCall.amount).toBe(expected);
+    expect(createCall.amount).toBe(4999);
   });
 });

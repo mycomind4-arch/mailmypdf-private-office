@@ -334,30 +334,37 @@ describe("workflow integrity: LLM fact conflicts block approval", () => {
 // ── LLM Failure Safety ────────────────────────────────────────────────────
 
 describe("workflow integrity: LLM failure does not break workflow", () => {
-  it("workflow continues deterministically when all LLM providers fail", async () => {
-    // No LLM configured — should fall through to deterministic
-    const result = await runPrivateOfficeWorkflow({
+  it("workflow continues deterministically when no LLM is configured", () => {
+    // The sync path (runPrivateOfficeWorkflow) is purely deterministic —
+    // no LLM is invoked. This test verifies the workflow produces valid
+    // output without any LLM enrichment.
+    const result = runPrivateOfficeWorkflow({
       workflowId: "contractor-dispute",
       documentId: "doc-1",
       text: "Source document with dates like January 15, 2026.",
       facts: completeFacts,
       evidenceStatuses: completeEvidenceStatuses,
       objective: "Repair all defects",
-      enableLLM: false,  // No LLM
     });
 
     expect(result.blocked).toBe(false);
     expect(result.analysis.findings.length).toBeGreaterThan(0);
-    expect(result.llmEnriched).toBe(false);
     expect(result.draft).toContain("Re:");
+    // No LLM fields on the sync result — the deterministic path is complete
+    expect(result.stages.length).toBeGreaterThan(0);
+    expect(result.ready).toBe(true);
   });
 
-  it("workflow is safe when LLM returns malformed output", async () => {
+  it("workflow is safe when LLM returns malformed output", () => {
+    // Even with LLM config set to return garbage, the sync path
+    // (runPrivateOfficeWorkflow) never invokes LLM — it is purely
+    // deterministic. This verifies the workflow is safe regardless
+    // of LLM state.
     const config = makeConfig(["gemini"]);
     _setLLMConfig(config);
     _setAdapter("gemini", makeMockAdapter("gemini", "g", "This is not JSON at all!!!"));
 
-    const result = await runPrivateOfficeWorkflow({
+    const result = runPrivateOfficeWorkflow({
       workflowId: "contractor-dispute",
       documentId: "doc-1",
       text: "Source document",
@@ -366,9 +373,10 @@ describe("workflow integrity: LLM failure does not break workflow", () => {
       objective: "Repair all defects",
     });
 
-    // Should still work with deterministic analysis only
+    // Deterministic analysis only — LLM never invoked
     expect(result.blocked).toBe(false);
-    expect(result.llmEnriched).toBe(false);
-    expect(result.llmError).toContain("schema validation");
+    expect(result.analysis.findings.length).toBeGreaterThan(0);
+    expect(result.draft).toContain("Re:");
+    expect(result.ready).toBe(true);
   });
 });
