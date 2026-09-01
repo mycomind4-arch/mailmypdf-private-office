@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { PrivateOfficeChrome } from "@/components/private-office-chrome";
 import { CapabilityDashboard } from "@/components/capability-dashboard";
+import { useAuth } from "@/lib/use-auth";
+import type { UserCapabilityState } from "@/domain/state-engine";
 
 export const Route = createFileRoute("/capabilities")({
   head: () => ({
@@ -29,6 +32,38 @@ export const Route = createFileRoute("/capabilities")({
 });
 
 function CapabilitiesPage() {
+  const { user, loading, isConfigured } = useAuth();
+  const [capabilityState, setCapabilityState] = useState<UserCapabilityState | null>(null);
+
+  useEffect(() => {
+    if (!user || !isConfigured) {
+      setCapabilityState(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const { loadCapabilityState } = await import("@/lib/fns/load-capability-state");
+        const result = await loadCapabilityState();
+        if (!cancelled) setCapabilityState(result.state as UserCapabilityState);
+      } catch {
+        // Supabase not configured — dashboard will use demo state
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user, isConfigured]);
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-ivory">
+        <PrivateOfficeChrome />
+        <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
+          <span className="font-mono text-sm text-stone">Loading capabilities…</span>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-ivory">
       <PrivateOfficeChrome />
@@ -47,7 +82,9 @@ function CapabilitiesPage() {
         </div>
       </section>
 
-      <CapabilityDashboard />
+      <CapabilityDashboard
+        initialState={capabilityState ?? undefined}
+      />
     </main>
   );
 }

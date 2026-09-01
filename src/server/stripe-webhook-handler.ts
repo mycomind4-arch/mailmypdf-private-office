@@ -10,10 +10,11 @@
  *   Stripe → POST /api/stripe/webhook → signature verification → event processing
  *                                                                    ↓
  *                                                           PaymentEvidence persistence
+ *                                                           Audit event recording
  *
  * Supported events:
- *   - checkout.session.completed → markVerified (idempotent)
- *   - payment_intent.payment_failed → markFailed (idempotent)
+ *   - checkout.session.completed → markVerified + record audit event (idempotent)
+ *   - payment_intent.payment_failed → markFailed + record audit event (idempotent)
  *
  * Idempotency: The repository's markVerified and markFailed are idempotent.
  * Duplicate webhook delivery for the same session is harmless.
@@ -29,11 +30,13 @@
 import type { Stripe } from "stripe";
 import type { StripeAdapter } from "@/platform/stripe-adapter";
 import type { PaymentEvidenceRepository } from "@/domain/payment-evidence";
+import type { MatterEventRepository } from "@/domain/event-repository";
 
 export interface WebhookHandlerConfig {
   stripeAdapter: StripeAdapter;
   paymentEvidenceRepository: PaymentEvidenceRepository;
   webhookSecret: string;
+  eventRepository?: MatterEventRepository;
 }
 
 /**
@@ -90,6 +93,29 @@ export async function handleStripeWebhook(
           paymentIntentId,
         );
 
+        // Record audit event (best-effort — don't fail the webhook if event recording fails)
+        if (config.eventRepository) {
+          const metadata = session.metadata as Record<string, string> | null;
+          const matterId = metadata?.matterId;
+          const ownerId = metadata?.ownerId;
+          if (matterId && ownerId) {
+            try {
+              await config.eventRepository.record({
+                matterId,
+                ownerId,
+                eventType: "approval_granted",
+                metadata: {
+                  stripe_session_id: sessionId,
+                  stripe_payment_intent_id: paymentIntentId,
+                  source: "stripe_webhook",
+                },
+              });
+            } catch {
+              // Best-effort audit — webhook still succeeds
+            }
+          }
+        }
+
         return Response.json({ received: true, status: "verified" });
       }
 
@@ -107,6 +133,29 @@ export async function handleStripeWebhook(
           sessionId,
           intent.last_payment_error?.message ?? "Payment failed",
         );
+
+        // Record audit event (best-effort)
+        if (config.eventRepository) {
+          const metadata = intent.metadata as Record<string, string> | null;
+          const matterId = metadata?.matterId;
+          const ownerId = metadata?.ownerId;
+          if (matterId && ownerId) {
+            try {
+              await config.eventRepository.record({
+                matterId,
+                ownerId,
+                eventType: "escalation_triggered",
+                metadata: {
+                  reason: "payment_failed",
+                  stripe_session_id: sessionId,
+                  error: intent.last_payment_error?.message ?? "Payment failed",
+                },
+              });
+            } catch {
+              // Best-effort audit — webhook still succeeds
+            }
+          }
+        }
 
         return Response.json({ received: true, status: "failed" });
       }

@@ -1,6 +1,7 @@
 import { handleStripeWebhook } from "@/server/stripe-webhook-handler";
 import { getStripeAdapter } from "@/platform/stripe-adapter";
 import { supabasePaymentEvidenceRepository } from "@/services/supabase-payment-evidence-repository";
+import { supabaseEventRepository } from "@/services/supabase-event-repository";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -40,6 +41,7 @@ export default {
         stripeAdapter,
         paymentEvidenceRepository: supabasePaymentEvidenceRepository,
         webhookSecret,
+        eventRepository: supabaseEventRepository,
       });
     }
 

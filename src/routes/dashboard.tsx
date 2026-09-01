@@ -21,7 +21,7 @@ const stageLabels = ["Intake", "Understanding", "Evidence", "Strategy", "Draft",
 
 function DashboardPage() {
   const { user, loading, isConfigured } = useAuth();
-  const [matters] = useState<MatterSummary[]>([]);
+  const [matters, setMatters] = useState<MatterSummary[]>([]);
   const [mattersLoading, setMattersLoading] = useState(true);
 
   useEffect(() => {
@@ -29,7 +29,30 @@ function DashboardPage() {
       setMattersLoading(false);
       return;
     }
-    setMattersLoading(false);
+    let cancelled = false;
+    (async () => {
+      try {
+        const { loadMatters } = await import("@/lib/fns/load-matters");
+        const result = await loadMatters();
+        if (!cancelled) {
+          setMatters(
+            (result.matters as MatterSummary[]).map((m) => ({
+              id: m.id,
+              title: m.title,
+              workflowId: m.workflowId,
+              status: m.status,
+              updatedAt: m.updatedAt,
+              trackingNumber: m.trackingNumber ?? null,
+            })),
+          );
+        }
+      } catch {
+        // Supabase not configured or table missing — show empty state
+      } finally {
+        if (!cancelled) setMattersLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
   }, [user, isConfigured]);
 
   if (loading) {
