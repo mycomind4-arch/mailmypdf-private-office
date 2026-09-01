@@ -1,10 +1,3 @@
-/**
- * Supabase adapter for User Capability State.
- *
- * All server-side capability transitions flow through the canonical lifecycle
- * engine so prerequisite checks, milestone evaluation, workflow-group unlocks,
- * and audit events cannot be bypassed by a direct state mutation.
- */
 import type { UserCapabilityState } from "@/domain/state-engine";
 import { createInitialState, startCapability } from "@/domain/state-engine";
 import { capabilityGraph } from "@/domain/capability-graph";
@@ -13,6 +6,7 @@ import {
   applyCapabilityCompletion,
   CapabilityTransitionError,
 } from "@/domain/capability-lifecycle";
+import { findCapabilityForWorkflow } from "@/domain/workflow-capability";
 
 function config() {
   const url = process.env.SUPABASE_URL;
@@ -207,13 +201,9 @@ const repository = {
     matterId: string,
     workflowId: string,
   ): Promise<UserCapabilityState> {
-    const entry = Object.entries(capabilityGraph.capabilities).find(
-      ([, capability]) => capability.workflowId === workflowId,
-    );
-    if (!entry) {
-      return this.load(userId);
-    }
-    return completeCapabilityForMatter(userId, matterId, entry[0]);
+    const match = findCapabilityForWorkflow(capabilityGraph, workflowId);
+    if (!match) return this.load(userId);
+    return completeCapabilityForMatter(userId, matterId, match.capabilityId);
   },
 
   async startCapability(
@@ -254,12 +244,9 @@ const repository = {
     let state = await this.load(userId);
 
     for (const workflowId of completedWorkflowIds) {
-      const entry = Object.entries(capabilityGraph.capabilities).find(
-        ([, capability]) => capability.workflowId === workflowId,
-      );
-      if (!entry) continue;
-      const capabilityId = entry[0];
-      if (state.completed.includes(capabilityId)) continue;
+      const match = findCapabilityForWorkflow(capabilityGraph, workflowId);
+      if (!match) continue;
+      if (state.completed.includes(match.capabilityId)) continue;
 
       const result = applyCapabilityCompletion(
         capabilityGraph,
@@ -268,14 +255,21 @@ const repository = {
         {
           matterId: `workflow:${workflowId}`,
           ownerId: userId,
-          capabilityId,
+          capabilityId: match.capabilityId,
         },
       );
       state = result.state;
 
       for (const event of result.events) {
         const { eventsBase, key } = config();
-        await insertEvent(eventsBase, key, userId, event.eventType, event.metadata);
+        await insertEvent(
+          eventsBase,
+          key,
+          userId,
+          event.eventType,
+          event.metadata,
+          `workflow:${workflowId}`,
+        );
       }
     }
 
