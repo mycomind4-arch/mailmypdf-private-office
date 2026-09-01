@@ -26,6 +26,10 @@ export const EVENT_TYPES = [
   "delivery_recorded",
   "proof_recorded",
   "escalation_triggered",
+  "capability_started",
+  "capability_completed",
+  "milestone_reached",
+  "workflow_group_unlocked",
 ] as const;
 
 export type EventType = (typeof EVENT_TYPES)[number];
