@@ -3,6 +3,10 @@
 **Status: FOUNDATIONAL**
 **Scope: Cross-ecosystem architectural concept**
 
+> **Canonical implementation specification:** [`docs/PRIVATE_OFFICE_CAPABILITY_GRAPH.md`](docs/PRIVATE_OFFICE_CAPABILITY_GRAPH.md)
+>
+> The canonical specification defines workflow groups, capability state, structured prerequisite operators, milestone semantics, goal solving, next-best-workflow ranking, reactive workflows, evidence, expiration, cross-vertical integration, and the LLC reference graph. This file remains the architectural overview.
+
 ## Vision
 
 Private Office is the orchestration and life-state engine for the MailMyPDF ecosystem. The core idea: completing workflows unlocks new capabilities, which unlock more workflows — creating a compounding system rather than a collection of workflow libraries.
