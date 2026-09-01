@@ -25,8 +25,6 @@ create policy user_capability_state_select_own
   on public.user_capability_state
   for select using (auth.uid()::text = owner_id);
 
--- No client-facing insert/update/delete policies — state changes go through
--- authenticated server functions that enforce graph integrity.
 drop policy if exists user_capability_state_insert_own on public.user_capability_state;
 drop policy if exists user_capability_state_update_own on public.user_capability_state;
 drop policy if exists user_capability_state_delete_own on public.user_capability_state;
@@ -59,6 +57,10 @@ create table if not exists public.user_capability_events (
   created_at timestamptz not null default now()
 );
 
+-- Existing installations may already have this table without the new column.
+alter table public.user_capability_events
+  add column if not exists workflow_group_id text;
+
 create index if not exists user_capability_events_owner_idx
   on public.user_capability_events(owner_id, created_at desc);
 
@@ -71,8 +73,8 @@ create policy user_capability_events_select_own
 
 drop policy if exists user_capability_events_insert_own on public.user_capability_events;
 
--- Existing installations: widen the CHECK constraint before writing the new
--- workflow-group lifecycle event type.
+-- Existing installations: replace the old CHECK constraint with the canonical
+-- lifecycle event set before workflow-group events are emitted.
 do $$
 begin
   if exists (
