@@ -8,6 +8,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { accountAuthMiddleware } from "@/lib/server-function-auth";
+import { capabilityGraph } from "@/domain/capability-graph";
+import {
+  findCapabilityForWorkflow,
+  getMissingWorkflowCapabilityPrerequisites,
+} from "@/domain/workflow-capability";
+import { CapabilityTransitionError } from "@/domain/capability-lifecycle";
 
 const inputSchema = z.object({
   matterId: z.string().min(1),
@@ -37,6 +43,28 @@ export const completeMatter = createServerFn({ method: "POST" })
         matter: current,
         capabilityState: await supabaseCapabilityStateRepository.load(userId),
       };
+    }
+
+    // Preflight the graph before mutating the matter. The final transition
+    // remains version-checked server-side; this prevents a deterministic
+    // prerequisite failure from producing a completed matter with no
+    // corresponding capability.
+    const capability = findCapabilityForWorkflow(
+      capabilityGraph,
+      current.workflowId,
+    );
+    if (capability) {
+      const capabilityState = await supabaseCapabilityStateRepository.load(userId);
+      const missing = getMissingWorkflowCapabilityPrerequisites(
+        capabilityGraph,
+        capabilityState,
+        current.workflowId,
+      );
+      if (missing.length > 0) {
+        throw new CapabilityTransitionError(
+          `Workflow ${current.workflowId} cannot complete the capability until: ${missing.join(", ")}`,
+        );
+      }
     }
 
     const matter = await supabaseMatterRepository.transition(
