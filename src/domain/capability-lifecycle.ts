@@ -18,6 +18,7 @@ import {
   type WorkflowGroupDefinition,
   type WorkflowGroupEvaluation,
 } from "./workflow-group-engine";
+import type { MatterEventRepository } from "./event-repository";
 
 export interface CapabilityTransitionInput {
   matterId: string;
@@ -147,4 +148,26 @@ export function applyCapabilityCompletion(
     newlyUnlockedGroups,
     events,
   };
+}
+
+/**
+ * Persist the lifecycle audit events after the caller has accepted the
+ * returned state. Event persistence is intentionally separate from state
+ * persistence so the application can place both behind one DB transaction.
+ */
+export async function recordCapabilityTransitionEvents(
+  repository: MatterEventRepository,
+  result: CapabilityTransitionResult,
+): Promise<void> {
+  await Promise.all(
+    result.events.map((event) =>
+      repository.record({
+        matterId: event.matterId,
+        ownerId: event.ownerId,
+        eventType: event.eventType,
+        actorId: event.actorId,
+        metadata: event.metadata,
+      }),
+    ),
+  );
 }
