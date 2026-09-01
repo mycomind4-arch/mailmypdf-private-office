@@ -309,4 +309,63 @@ export const workflowProfiles: Record<WorkflowId, WorkflowProfile> = {
       registeredMail: 24.99,
     },
   },
+  "debt-validation-dispute": {
+    id: "debt-validation-dispute",
+    slug: "debt-validation-dispute",
+    family: "Financial",
+    primaryKeyword: "debt validation dispute letter",
+    supportingKeywords: [
+      "debt validation letter",
+      "FDCPA dispute letter",
+      "debt collection dispute letter",
+      "request for debt verification",
+      "dispute collection account letter",
+      "debt collector validation request",
+      "cease and desist debt collector",
+    ],
+    searchIntent: "commercial",
+    problem:
+      "A consumer has received a collection notice for a debt they dispute — an unrecognized debt, incorrect amount, wrong party, potentially time-barred debt, or a debt collector who has failed to provide required validation information — and needs to document the dispute with collection notices, credit records, payment history, and professional correspondence to the debt collector under the FDCPA.",
+    outcome:
+      "Create a documented debt validation dispute letter identifying the debt collector, the consumer, the account or reference number, the alleged debt amount, the original creditor, the basis for dispute, the evidence, the chronology, and the requested resolution.",
+    recipientRole: "debt collector",
+    requiredFacts: [
+      "debt collector name",
+      "consumer name",
+      "account or reference number",
+      "alleged debt amount",
+      "original creditor name",
+      "dispute description",
+      "collector communication date",
+    ],
+    evidenceRequirements: [
+      "collection notice or validation notice from debt collector",
+      "credit report showing the collection account",
+      "payment records or receipts for the original debt",
+      "prior correspondence with the debt collector",
+      "original account agreement or statement when available",
+      "cease and desist requests if previously sent",
+      "CFPB or FTC complaint records when applicable",
+      "correspondence referencing the FDCPA validation notice",
+      "supporting communications email chat or phone logs",
+    ],
+    deadlinePolicy:
+      "Debt validation timelines are governed by the Fair Debt Collection Practices Act (FDCPA), 15 U.S.C. § 1692g, the collection notice date, and applicable state law. Under the FDCPA, a debt collector must send a validation notice within five days of the initial communication, and the consumer has 30 days from receipt to dispute the debt or request validation. Capture all dates visible in collection notices, correspondence, and credit reports. Distinguish known deadlines explicitly stated in the collection notice or required by the FDCPA 30-day validation period from potential deadlines that depend on state law, statute of limitations, or the specific debt type. Flag the 30-day validation period as a known deadline when the collection notice date is confirmed. Flag any statute of limitations or state-law deadlines as potential deadlines requiring verification. Do not invent a statutory deadline beyond the FDCPA 30-day validation period. Potential deadline identified — verify against the applicable collection notice, state law, and jurisdiction. Surface all date facts for human review.",
+    objectivePrompt:
+      "What specific resolution are you requesting from the debt collector — validate the debt, cease collection activity, correct the amount, provide verification documentation, remove from credit report, or other documented resolution?",
+    draftSubject: "Debt Validation Dispute Correspondence",
+    disclaimer:
+      "Private Office provides document preparation, evidence organization, and mailing assistance. It is not a law firm, debt collector, credit bureau, regulator, or government agency and does not provide legal advice, determine whether a debt is legally valid or time-barred, determine whether the FDCPA has been violated, or guarantee any outcome including debt dismissal, cessation of collection, or removal from credit reports. You remain responsible for the facts and decisions in your matter.",
+    pricing: {
+      preparationFee: 39.99,
+      includedResponsePages: 6,
+      responsePagePrice: 0,
+      supportingPagePrice: 0,
+      standardMail: 4.99,
+      certifiedMail: 12.99,
+      certifiedReturnReceipt: 18.99,
+      registeredMail: 24.99,
+    },
+  },
 };
+

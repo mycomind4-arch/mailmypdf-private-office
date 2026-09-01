@@ -21,4 +21,6 @@ export const workflowImages: Record<string, string | null> = {
     "https://media.base44.com/images/public/6a820678f91ab1c14e45f352/b5000987a_generated_image.png",
   "security-deposit-dispute":
     "https://media.base44.com/images/public/6a820678f91ab1c14e45f352/3d67892bd_generated_image.png",
+  "debt-validation-dispute":
+    "https://media.base44.com/images/public/6a3b15f3d7112ff9e0c549a1/18c61510e_generated_image.png",
 };

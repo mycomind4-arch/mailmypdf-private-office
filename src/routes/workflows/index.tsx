@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, ShieldCheck, Building2, Home, Landmark, ScrollText, Scale } from "lucide-react";
+import { ArrowRight, ShieldCheck, Building2, Home, Landmark, ScrollText, Scale, FileText } from "lucide-react";
 import { PrivateOfficeChrome } from "@/components/private-office-chrome";
 import { workflows } from "@/domain/workflows";
 import { workflowProfiles } from "@/domain/workflow-profiles";
@@ -13,6 +13,7 @@ const workflowIcons: Record<string, typeof ShieldCheck> = {
   "bank-wire-dispute": Landmark,
   "trust-beneficiary-notice": ScrollText,
   "security-deposit-dispute": Scale,
+  "debt-validation-dispute": FileText,
 };
 
 function WorkflowDirectory() {
@@ -92,4 +93,3 @@ function WorkflowDirectory() {
     </main>
   );
 }
-
