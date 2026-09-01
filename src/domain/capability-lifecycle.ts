@@ -14,7 +14,7 @@ import {
 } from "./state-engine";
 import {
   evaluateWorkflowGroups,
-  getNewlyUnlockedWorkflowGroups,
+  getAvailableWorkflowGroups,
   type WorkflowGroupDefinition,
   type WorkflowGroupEvaluation,
 } from "./workflow-group-engine";
@@ -47,6 +47,13 @@ export interface CapabilityTransitionResult {
   events: CapabilityTransitionEvent[];
 }
 
+export class CapabilityTransitionError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "CapabilityTransitionError";
+  }
+}
+
 /**
  * Apply one authoritative capability completion and derive all downstream
  * state. This function is pure: persistence is deliberately left to the
@@ -58,17 +65,50 @@ export function applyCapabilityCompletion(
   state: UserCapabilityState,
   input: CapabilityTransitionInput,
 ): CapabilityTransitionResult {
+  const capability = graph.capabilities[input.capabilityId];
+  if (!capability) {
+    throw new CapabilityTransitionError(`Unknown capability: ${input.capabilityId}`);
+  }
+
   const facts = input.facts ?? {};
   const groupsBefore = evaluateWorkflowGroups(graph, groups, state, facts);
+  const isReplay = state.completed.includes(input.capabilityId);
+
+  if (!isReplay) {
+    const missing = capability.prerequisites.filter(
+      (prerequisite) => !state.completed.includes(prerequisite),
+    );
+    if (missing.length > 0) {
+      throw new CapabilityTransitionError(
+        `Capability ${input.capabilityId} is blocked by: ${missing.join(", ")}`,
+      );
+    }
+  }
+
   const completion = completeCapability(graph, state, input.capabilityId);
   const groupsAfter = evaluateWorkflowGroups(graph, groups, completion.state, facts);
-  const newlyUnlockedGroups = getNewlyUnlockedWorkflowGroups(
-    graph,
-    groups,
-    state,
-    completion.state,
-    facts,
+
+  const beforeAvailable = new Set(
+    getAvailableWorkflowGroups(graph, groups, state, facts).map(
+      (evaluation) => evaluation.group.id,
+    ),
   );
+  const newlyUnlockedGroups = isReplay
+    ? []
+    : getAvailableWorkflowGroups(graph, groups, completion.state, facts)
+        .filter((evaluation) => !beforeAvailable.has(evaluation.group.id))
+        .map((evaluation) => evaluation.group);
+
+  if (isReplay) {
+    return {
+      state: completion.state,
+      completion,
+      groupsBefore,
+      groupsAfter,
+      newlyUnlockedGroups: [],
+      events: [],
+    };
+  }
 
   const actorId = input.actorId ?? null;
   const events: CapabilityTransitionEvent[] = [
