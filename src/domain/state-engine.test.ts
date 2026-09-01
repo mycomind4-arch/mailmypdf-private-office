@@ -51,10 +51,10 @@ describe("state-engine: available capabilities", () => {
     expect(available.length).toBe(7);
   });
 
-  it("15 business capabilities are locked at start", () => {
+  it("16 business capabilities are locked at start", () => {
     const state = createInitialState("user-1");
     const locked = getLockedCapabilities(capabilityGraph, state);
-    expect(locked.length).toBe(15);
+    expect(locked.length).toBe(16);
   });
 
   it("after form-llc, 7 business capabilities become available (dispute caps already available)", () => {
@@ -189,7 +189,7 @@ describe("state-engine: life state summary", () => {
     expect(summary.totalInProgress).toBe(0);
     expect(summary.reachedMilestones.length).toBe(0);
     expect(summary.availableCapabilities.length).toBe(7); // form-llc + 6 dispute
-    expect(summary.lockedCapabilities.length).toBe(15);
+    expect(summary.lockedCapabilities.length).toBe(16);
   });
 
   it("summarizes state after completing form-llc", () => {
@@ -269,3 +269,4 @@ describe("state-engine: full business formation journey", () => {
     expect(currentState.completed.length).toBe(17);
   });
 });
+

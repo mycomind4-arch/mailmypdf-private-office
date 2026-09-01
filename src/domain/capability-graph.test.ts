@@ -39,8 +39,8 @@ describe("capability-graph: graph integrity", () => {
 });
 
 describe("capability-graph: total graph size", () => {
-  it("has 22 total capabilities (16 business + 6 dispute)", () => {
-    expect(Object.keys(capabilityGraph.capabilities).length).toBe(22);
+  it("has 23 total capabilities (17 business + 6 dispute)", () => {
+    expect(Object.keys(capabilityGraph.capabilities).length).toBe(23);
   });
 
   it("has 6 milestones (4 business + 2 dispute)", () => {
@@ -199,9 +199,9 @@ describe("capability-graph: reactive vs proactive", () => {
     expect(reactive.every((c) => c.reactive === true)).toBe(true);
   });
 
-  it("getProactiveCapabilities returns 16 business formation capabilities", () => {
+  it("getProactiveCapabilities returns 17 business formation capabilities", () => {
     const proactive = getProactiveCapabilities(capabilityGraph);
-    expect(proactive.length).toBe(16);
+    expect(proactive.length).toBe(17);
     expect(proactive.every((c) => c.reactive !== true)).toBe(true);
   });
 
@@ -222,3 +222,4 @@ describe("capability-graph: no circular dependencies", () => {
     expect(errors.filter((e) => e.includes("Circular"))).toEqual([]);
   });
 });
+

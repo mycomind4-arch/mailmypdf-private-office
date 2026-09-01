@@ -25,7 +25,7 @@ function buildEvidenceStatuses(
 const completeFacts: Record<string, string> = {
   debtCollectorName: "Mid-State Collection Services, LLC",
   consumerName: "Jane Q. Public",
-  accountReferenceNumber: "AC-2026-04471",
+  accountOrReferenceNumber: "AC-2026-04471",
   allegedDebtAmount: "$3,847.50",
   originalCreditorName: "Cascade Medical Center",
   disputeDescription:
@@ -93,7 +93,7 @@ describe("debt-validation-dispute: intake and required facts", () => {
       workflowId: "debt-validation-dispute",
       documentId: "doc-1",
       text: "Collection text.",
-      facts: { ...completeFacts, accountReferenceNumber: "" },
+      facts: { ...completeFacts, accountOrReferenceNumber: "" },
       objective: "Request debt validation.",
     });
     expect(result.blocked).toBe(true);
@@ -291,3 +291,4 @@ describe("debt-validation-dispute: regression — does not affect other workflow
     expect(workflowProfiles["debt-validation-dispute"].family).toBe("Financial");
   });
 });
+
