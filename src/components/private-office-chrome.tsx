@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { BriefcaseBusiness, ChevronDown, Plus } from "lucide-react";
+import { BriefcaseBusiness, Sparkles, ChevronDown, Plus } from "lucide-react";
 
 export function PrivateOfficeChrome() {
   return (
@@ -18,6 +18,9 @@ export function PrivateOfficeChrome() {
           <Link to="/dashboard" className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-navy bg-navy-bg">
             <BriefcaseBusiness size={15} /> Matters
           </Link>
+          <Link to="/capabilities" className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm text-charcoal-soft transition-colors hover:text-navy">
+            <Sparkles size={15} /> Capabilities
+          </Link>
           <Link to="/workflows" className="rounded-md px-3 py-2 text-sm text-charcoal-soft transition-colors hover:text-navy">
             Workflows
           </Link>
@@ -26,10 +29,10 @@ export function PrivateOfficeChrome() {
         {/* Actions */}
         <div className="flex items-center gap-3">
           <Link
-            to="/workflows"
+            to="/capabilities"
             className="inline-flex items-center gap-1.5 rounded-md bg-navy px-3.5 py-2 text-xs font-medium text-paper transition-colors hover:bg-navy-deep"
           >
-            <Plus size={14} /> New Matter
+            <Plus size={14} /> What's Next
           </Link>
           <button
             className="flex h-8 w-8 items-center justify-center rounded-full border border-rule bg-paper-deep text-xs font-medium text-stone transition-colors hover:bg-muted"
