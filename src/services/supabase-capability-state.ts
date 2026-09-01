@@ -75,6 +75,7 @@ async function insertEvent(
   ownerId: string,
   eventType: string,
   payload: Record<string, unknown>,
+  matterId?: string,
 ): Promise<void> {
   const response = await fetch(eventsBase, {
     method: "POST",
@@ -89,6 +90,7 @@ async function insertEvent(
         typeof payload.milestoneId === "string" ? payload.milestoneId : null,
       workflow_group_id:
         typeof payload.groupId === "string" ? payload.groupId : null,
+      matter_id: matterId ?? null,
       metadata: payload,
       created_at: new Date().toISOString(),
     }),
@@ -98,7 +100,32 @@ async function insertEvent(
   }
 }
 
-export const supabaseCapabilityStateRepository = {
+async function completeCapabilityForMatter(
+  userId: string,
+  matterId: string,
+  capabilityId: string,
+): Promise<UserCapabilityState> {
+  const { eventsBase, key } = config();
+  const currentState = await repository.load(userId);
+  const result = applyCapabilityCompletion(
+    capabilityGraph,
+    businessWorkflowGroups,
+    currentState,
+    {
+      matterId,
+      ownerId: userId,
+      capabilityId,
+    },
+  );
+
+  await repository.save(result.state);
+  for (const event of result.events) {
+    await insertEvent(eventsBase, key, userId, event.eventType, event.metadata, matterId);
+  }
+  return result.state;
+}
+
+const repository = {
   async load(userId: string): Promise<UserCapabilityState> {
     const { stateBase, key } = config();
     const response = await fetch(
@@ -175,6 +202,20 @@ export const supabaseCapabilityStateRepository = {
     };
   },
 
+  async completeWorkflowForMatter(
+    userId: string,
+    matterId: string,
+    workflowId: string,
+  ): Promise<UserCapabilityState> {
+    const entry = Object.entries(capabilityGraph.capabilities).find(
+      ([, capability]) => capability.workflowId === workflowId,
+    );
+    if (!entry) {
+      return this.load(userId);
+    }
+    return completeCapabilityForMatter(userId, matterId, entry[0]);
+  },
+
   async startCapability(
     userId: string,
     capabilityId: string,
@@ -211,7 +252,6 @@ export const supabaseCapabilityStateRepository = {
     completedWorkflowIds: string[],
   ): Promise<UserCapabilityState> {
     let state = await this.load(userId);
-    const { eventsBase, key } = config();
 
     for (const workflowId of completedWorkflowIds) {
       const entry = Object.entries(capabilityGraph.capabilities).find(
@@ -234,6 +274,7 @@ export const supabaseCapabilityStateRepository = {
       state = result.state;
 
       for (const event of result.events) {
+        const { eventsBase, key } = config();
         await insertEvent(eventsBase, key, userId, event.eventType, event.metadata);
       }
     }
@@ -242,3 +283,5 @@ export const supabaseCapabilityStateRepository = {
     return state;
   },
 };
+
+export const supabaseCapabilityStateRepository = repository;
