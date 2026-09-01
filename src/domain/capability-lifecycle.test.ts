@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { capabilityGraph } from "./capability-graph";
 import { businessWorkflowGroups } from "./workflow-groups";
-import { applyCapabilityCompletion } from "./capability-lifecycle";
+import {
+  applyCapabilityCompletion,
+  CapabilityTransitionError,
+} from "./capability-lifecycle";
 import { createInitialState } from "./state-engine";
 
 describe("capability lifecycle integration", () => {
@@ -35,6 +38,23 @@ describe("capability lifecycle integration", () => {
     );
   });
 
+  it("rejects a first-time completion when prerequisites are not satisfied", () => {
+    const state = createInitialState("user-1");
+
+    expect(() =>
+      applyCapabilityCompletion(
+        capabilityGraph,
+        businessWorkflowGroups,
+        state,
+        {
+          matterId: "matter-1",
+          ownerId: "user-1",
+          capabilityId: "obtain-ein",
+        },
+      ),
+    ).toThrow(CapabilityTransitionError);
+  });
+
   it("is idempotent when the same completion is replayed", () => {
     const state = createInitialState("user-1");
     const first = applyCapabilityCompletion(
@@ -53,6 +73,7 @@ describe("capability lifecycle integration", () => {
     expect(second.state.completed).toEqual(first.state.completed);
     expect(second.state.reachedMilestones).toEqual(first.state.reachedMilestones);
     expect(second.newlyUnlockedGroups).toEqual([]);
+    expect(second.events).toEqual([]);
   });
 
   it("emits group unlocks only when a group transitions from unavailable to available", () => {
