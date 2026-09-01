@@ -53,16 +53,23 @@ create table if not exists public.user_capability_events (
   capability_id text,
   milestone_id text,
   workflow_group_id text,
+  matter_id text,
   metadata jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now()
 );
 
--- Existing installations may already have this table without the new column.
+-- Existing installations may already have this table without the new columns.
 alter table public.user_capability_events
   add column if not exists workflow_group_id text;
 
+alter table public.user_capability_events
+  add column if not exists matter_id text;
+
 create index if not exists user_capability_events_owner_idx
   on public.user_capability_events(owner_id, created_at desc);
+
+create index if not exists user_capability_events_matter_idx
+  on public.user_capability_events(matter_id, created_at desc);
 
 alter table public.user_capability_events enable row level security;
 
