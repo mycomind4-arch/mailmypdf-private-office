@@ -1,40 +1,36 @@
 /**
- * Supabase adapter for User Capability State
+ * Supabase adapter for User Capability State.
  *
- * Loads and persists the user's capability graph state to Supabase.
- * Uses the REST API with the service-role key (server-only), matching
- * the pattern used by the matter, evidence, and event repositories.
- *
- * Tables:
- *   user_capability_state (one row per owner)
- *   user_capability_events (insert-only audit trail)
+ * All server-side capability transitions flow through the canonical lifecycle
+ * engine so prerequisite checks, milestone evaluation, workflow-group unlocks,
+ * and audit events cannot be bypassed by a direct state mutation.
  */
 import type { UserCapabilityState } from "@/domain/state-engine";
-import {
-  createInitialState,
-  completeCapability,
-  startCapability,
-} from "@/domain/state-engine";
+import { createInitialState, startCapability } from "@/domain/state-engine";
 import { capabilityGraph } from "@/domain/capability-graph";
+import { businessWorkflowGroups } from "@/domain/workflow-groups";
+import {
+  applyCapabilityCompletion,
+  CapabilityTransitionError,
+} from "@/domain/capability-lifecycle";
 
 function config() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key)
+  if (!url || !key) {
     throw new Error(
       "Supabase capability state persistence is not configured: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required",
     );
+  }
+  const base = url.replace(/\/$/, "");
   return {
-    stateBase: `${url.replace(/\/$/, "")}/rest/v1/user_capability_state`,
-    eventsBase: `${url.replace(/\/$/, "")}/rest/v1/user_capability_events`,
+    stateBase: `${base}/rest/v1/user_capability_state`,
+    eventsBase: `${base}/rest/v1/user_capability_events`,
     key,
   };
 }
 
-function headers(
-  key: string,
-  extra?: Record<string, string>,
-): Record<string, string> {
+function headers(key: string, extra?: Record<string, string>): Record<string, string> {
   return {
     apikey: key,
     authorization: `Bearer ${key}`,
@@ -64,13 +60,12 @@ function fromRow(row: CapabilityStateRow): UserCapabilityState {
 }
 
 function rowFromState(state: UserCapabilityState) {
-  const now = new Date().toISOString();
   return {
     owner_id: state.userId,
     completed_capabilities: state.completed,
     in_progress_capabilities: state.inProgress,
     reached_milestones: state.reachedMilestones,
-    updated_at: now,
+    updated_at: new Date().toISOString(),
   };
 }
 
@@ -92,51 +87,39 @@ async function insertEvent(
       created_at: new Date().toISOString(),
     }),
   });
-  if (!response.ok)
+  if (!response.ok) {
     throw new Error(`Supabase capability event insert failed: ${response.status}`);
+  }
 }
 
 export const supabaseCapabilityStateRepository = {
-  /**
-   * Load the user's capability state from Supabase.
-   * Returns initial state if no record exists yet.
-   */
   async load(userId: string): Promise<UserCapabilityState> {
     const { stateBase, key } = config();
     const response = await fetch(
       `${stateBase}?owner_id=eq.${encodeURIComponent(userId)}&limit=1`,
       { headers: headers(key) },
     );
-    if (!response.ok)
+    if (!response.ok) {
       throw new Error(`Supabase capability state load failed: ${response.status}`);
+    }
     const rows = (await response.json()) as CapabilityStateRow[];
-    if (!rows[0]) return createInitialState(userId);
-    return fromRow(rows[0]);
+    return rows[0] ? fromRow(rows[0]) : createInitialState(userId);
   },
 
-  /**
-   * Save the full state (service role — bypasses RLS).
-   */
   async save(state: UserCapabilityState): Promise<void> {
     const { stateBase, key } = config();
-    const response = await fetch(
-      `${stateBase}?owner_id=eq.${encodeURIComponent(state.userId)}`,
-      {
-        method: "POST",
-        headers: headers(key, {
-          Prefer: "return=minimal,upsert=merge",
-        }),
-        body: JSON.stringify(rowFromState(state)),
-      },
-    );
-    if (!response.ok)
+    const response = await fetch(stateBase, {
+      method: "POST",
+      headers: headers(key, {
+        Prefer: "resolution=merge-duplicates,return=minimal",
+      }),
+      body: JSON.stringify(rowFromState(state)),
+    });
+    if (!response.ok) {
       throw new Error(`Supabase capability state save failed: ${response.status}`);
+    }
   },
 
-  /**
-   * Complete a capability and persist the resulting state.
-   * Records an audit event for the completion and any milestone transitions.
-   */
   async completeCapability(
     userId: string,
     capabilityId: string,
@@ -145,90 +128,110 @@ export const supabaseCapabilityStateRepository = {
     completedCapabilityId: string;
     newlyReachedMilestones: { id: string; title: string; description: string }[];
     newlyUnlockedCapabilities: { id: string; title: string }[];
+    newlyUnlockedGroups: { id: string; title: string }[];
   }> {
     const { eventsBase, key } = config();
     const currentState = await this.load(userId);
 
-    if (currentState.completed.includes(capabilityId)) {
-      return {
-        state: currentState,
-        completedCapabilityId: capabilityId,
-        newlyReachedMilestones: [],
-        newlyUnlockedCapabilities: [],
-      };
-    }
+    const result = applyCapabilityCompletion(
+      capabilityGraph,
+      businessWorkflowGroups,
+      currentState,
+      {
+        matterId: `capability:${capabilityId}`,
+        ownerId: userId,
+        capabilityId,
+      },
+    );
 
-    const result = completeCapability(capabilityGraph, currentState, capabilityId);
     await this.save(result.state);
 
-    await insertEvent(eventsBase, key, userId, "capability_completed", {
-      capability_id: capabilityId,
-    });
-
-    for (const milestone of result.newlyReachedMilestones) {
-      await insertEvent(eventsBase, key, userId, "milestone_reached", {
-        milestone_id: milestone.id,
-        title: milestone.title,
-        description: milestone.description,
-      });
+    for (const event of result.events) {
+      await insertEvent(eventsBase, key, userId, event.eventType, event.metadata);
     }
 
     return {
       state: result.state,
-      completedCapabilityId: result.completedCapabilityId,
-      newlyReachedMilestones: result.newlyReachedMilestones,
-      newlyUnlockedCapabilities: result.newlyUnlockedCapabilities,
+      completedCapabilityId: result.completion.completedCapabilityId,
+      newlyReachedMilestones: result.completion.newlyReachedMilestones.map((m) => ({
+        id: m.id,
+        title: m.title,
+        description: m.description,
+      })),
+      newlyUnlockedCapabilities: result.completion.newlyUnlockedCapabilities.map((c) => ({
+        id: c.id,
+        title: c.title,
+      })),
+      newlyUnlockedGroups: result.newlyUnlockedGroups.map((g) => ({
+        id: g.id,
+        title: g.title,
+      })),
     };
   },
 
-  /**
-   * Mark a capability as in-progress.
-   */
   async startCapability(
     userId: string,
     capabilityId: string,
   ): Promise<UserCapabilityState> {
     const { eventsBase, key } = config();
     const currentState = await this.load(userId);
+    const capability = capabilityGraph.capabilities[capabilityId];
+
+    if (!capability) {
+      throw new CapabilityTransitionError(`Unknown capability: ${capabilityId}`);
+    }
+    if (currentState.completed.includes(capabilityId)) return currentState;
+    if (currentState.inProgress.includes(capabilityId)) return currentState;
+
+    const missing = capability.prerequisites.filter(
+      (prerequisite) => !currentState.completed.includes(prerequisite),
+    );
+    if (missing.length > 0) {
+      throw new CapabilityTransitionError(
+        `Capability ${capabilityId} is blocked by: ${missing.join(", ")}`,
+      );
+    }
+
     const newState = startCapability(currentState, capabilityId);
     await this.save(newState);
-
     await insertEvent(eventsBase, key, userId, "capability_started", {
       capability_id: capabilityId,
     });
-
     return newState;
   },
 
-  /**
-   * Derive completed capabilities from matter history.
-   * When a matter reaches 'completed' status, the corresponding capability
-   * (linked via workflowId) is marked complete.
-   */
   async syncFromMatters(
     userId: string,
     completedWorkflowIds: string[],
   ): Promise<UserCapabilityState> {
-    const currentState = await this.load(userId);
-    let state = currentState;
+    let state = await this.load(userId);
 
     for (const workflowId of completedWorkflowIds) {
-      const capEntry = Object.entries(capabilityGraph.capabilities).find(
-        ([, cap]) => cap.workflowId === workflowId,
+      const entry = Object.entries(capabilityGraph.capabilities).find(
+        ([, capability]) => capability.workflowId === workflowId,
       );
-      if (!capEntry) continue;
+      if (!entry) continue;
+      const capabilityId = entry[0];
+      if (state.completed.includes(capabilityId)) continue;
 
-      const capId = capEntry[0];
-      if (!state.completed.includes(capId)) {
-        const result = completeCapability(capabilityGraph, state, capId);
-        state = result.state;
+      const result = applyCapabilityCompletion(
+        capabilityGraph,
+        businessWorkflowGroups,
+        state,
+        {
+          matterId: `workflow:${workflowId}`,
+          ownerId: userId,
+          capabilityId,
+        },
+      );
+      state = result.state;
+
+      for (const event of result.events) {
+        await insertEvent(config().eventsBase, config().key, userId, event.eventType, event.metadata);
       }
     }
 
-    if (state !== currentState) {
-      await this.save(state);
-    }
-
+    await this.save(state);
     return state;
   },
 };
