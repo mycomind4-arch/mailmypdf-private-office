@@ -1,5 +1,5 @@
 import type { RequirementRule } from "./requirement-rules";
-import { allOf, anyOf } from "./requirement-rules";
+import { allOf } from "./requirement-rules";
 
 export type WorkflowGroupCompletionRule =
   | { type: "all-required"; capabilityIds: string[] }
@@ -40,10 +40,7 @@ export const businessWorkflowGroups: WorkflowGroupDefinition[] = [
     title: "Financial Infrastructure",
     description: "Establish banking and accounting infrastructure sufficient to operate the business cleanly.",
     workflowIds: ["open-business-bank-account", "set-up-accounting"],
-    completionRule: {
-      type: "all-required",
-      capabilityIds: ["open-business-bank-account", "set-up-accounting"],
-    },
+    completionRule: { type: "all-required", capabilityIds: ["open-business-bank-account", "set-up-accounting"] },
     unlockRequirement: allOf("form-llc", "obtain-ein"),
     grantsCapabilities: ["business-financially-operational"],
   },
@@ -78,33 +75,12 @@ export const businessWorkflowGroups: WorkflowGroupDefinition[] = [
     id: "business-operational",
     title: "Business Operational",
     description: "Convergence state: the business has enough identity, financial, commercial, licensing, and risk infrastructure to operate.",
-    workflowIds: [
-      "form-llc",
-      "obtain-ein",
-      "register-dba",
-      "open-business-bank-account",
-      "set-up-accounting",
-      "create-contracts",
-      "obtain-local-license",
-      "obtain-business-insurance",
-    ],
+    workflowIds: ["form-llc", "obtain-ein", "register-dba", "open-business-bank-account", "set-up-accounting", "create-contracts", "obtain-local-license", "obtain-business-insurance"],
     completionRule: {
       type: "requirement",
-      requirement: allOf(
-        "form-llc",
-        "obtain-ein",
-        "open-business-bank-account",
-        "set-up-accounting",
-        "create-contracts",
-        "obtain-local-license",
-        "obtain-business-insurance",
-      ),
+      requirement: allOf("form-llc", "obtain-ein", "open-business-bank-account", "set-up-accounting", "create-contracts", "obtain-local-license", "obtain-business-insurance"),
     },
-    unlockRequirement: anyOf(
-      "business-entity-active",
-      "business-identity-established",
-      "business-financially-operational",
-    ),
+    unlockRequirement: allOf("form-llc"),
     grantsCapabilities: ["operating-business"],
   },
   {
