@@ -78,6 +78,30 @@ Given a user's state and a goal, determines the path through the capability grap
 - "How do I get to X?" — ordered path from current state to a goal
 - "What just became possible?" — newly unlocked capabilities after a completion
 
+## Authoritative Completion Boundary
+
+The capability graph must never treat a client-side action such as "mark complete" as proof that a workflow was completed. The authoritative sequence is:
+
+```text
+workflow execution
+      ↓
+matter reaches COMPLETED
+      ↓
+server validates owner + version + completion proof
+      ↓
+resolve matter.workflowId → capability
+      ↓
+applyCapabilityCompletion()
+      ↓
+persist capability state + lifecycle audit events
+      ↓
+evaluate milestones + workflow-group unlocks
+      ↓
+refresh available next workflows
+```
+
+The Private Office server function `completeMatter` is the canonical application boundary for this transition. `supabaseCapabilityStateRepository.completeWorkflowForMatter()` carries the completed matter's real `matterId` into the capability lifecycle so audit events remain tied to the source matter. Workflows that do not yet have a graph capability mapping remain valid workflow records but do not fabricate a capability transition.
+
 ## State Transitions
 
 ```
