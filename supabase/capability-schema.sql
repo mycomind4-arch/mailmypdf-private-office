@@ -2,11 +2,9 @@
 -- Capability Graph State — User life state persistence
 --
 -- Stores the user's completed capabilities, in-progress capabilities,
--- and reached milestones. Derived from matter history — when a matter
--- is completed, the corresponding capability is marked complete.
+-- and reached milestones. Derived from authoritative workflow/state events.
 -- ─────────────────────────────────────────────────────────────────────────
 
--- User capability state table (one row per user)
 create table if not exists public.user_capability_state (
   id uuid primary key default gen_random_uuid(),
   owner_id text not null unique,
@@ -17,46 +15,87 @@ create table if not exists public.user_capability_state (
   updated_at timestamptz not null default now()
 );
 
-create index if not exists user_capability_state_owner_idx on public.user_capability_state(owner_id);
+create index if not exists user_capability_state_owner_idx
+  on public.user_capability_state(owner_id);
 
--- RLS: users can only read their own state; writes go through server functions
 alter table public.user_capability_state enable row level security;
 
 drop policy if exists user_capability_state_select_own on public.user_capability_state;
-create policy user_capability_state_select_own on public.user_capability_state
+create policy user_capability_state_select_own
+  on public.user_capability_state
   for select using (auth.uid()::text = owner_id);
 
 -- No client-facing insert/update/delete policies — state changes go through
--- server functions that use the service role key and enforce graph integrity.
+-- authenticated server functions that enforce graph integrity.
 drop policy if exists user_capability_state_insert_own on public.user_capability_state;
 drop policy if exists user_capability_state_update_own on public.user_capability_state;
+drop policy if exists user_capability_state_delete_own on public.user_capability_state;
 
--- Updated_at trigger
 drop trigger if exists user_capability_state_updated_at on public.user_capability_state;
 create trigger user_capability_state_updated_at
   before update on public.user_capability_state
   for each row execute function public.set_private_office_updated_at();
 
 -- ─────────────────────────────────────────────────────────────────────────
--- Capability completion events — audit trail for capability state changes
+-- Capability lifecycle events — immutable audit trail
 -- ─────────────────────────────────────────────────────────────────────────
 
 create table if not exists public.user_capability_events (
   id uuid primary key default gen_random_uuid(),
   owner_id text not null,
-  event_type text not null check (event_type in ('capability_started','capability_completed','milestone_reached','milestone_unlocked')),
+  event_type text not null check (
+    event_type in (
+      'capability_started',
+      'capability_completed',
+      'milestone_reached',
+      'milestone_unlocked',
+      'workflow_group_unlocked'
+    )
+  ),
   capability_id text,
   milestone_id text,
+  workflow_group_id text,
   metadata jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now()
 );
 
-create index if not exists user_capability_events_owner_idx on public.user_capability_events(owner_id, created_at desc);
+create index if not exists user_capability_events_owner_idx
+  on public.user_capability_events(owner_id, created_at desc);
 
 alter table public.user_capability_events enable row level security;
 
 drop policy if exists user_capability_events_select_own on public.user_capability_events;
-create policy user_capability_events_select_own on public.user_capability_events
+create policy user_capability_events_select_own
+  on public.user_capability_events
   for select using (auth.uid()::text = owner_id);
 
 drop policy if exists user_capability_events_insert_own on public.user_capability_events;
+
+-- Existing installations: widen the CHECK constraint before writing the new
+-- workflow-group lifecycle event type.
+do $$
+begin
+  if exists (
+    select 1
+    from pg_constraint
+    where conrelid = 'public.user_capability_events'::regclass
+      and conname = 'user_capability_events_event_type_check'
+  ) then
+    alter table public.user_capability_events
+      drop constraint user_capability_events_event_type_check;
+  end if;
+exception when undefined_table then
+  null;
+end $$;
+
+alter table public.user_capability_events
+  add constraint user_capability_events_event_type_check
+  check (
+    event_type in (
+      'capability_started',
+      'capability_completed',
+      'milestone_reached',
+      'milestone_unlocked',
+      'workflow_group_unlocked'
+    )
+  );
