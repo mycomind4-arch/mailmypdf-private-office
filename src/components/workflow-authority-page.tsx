@@ -58,7 +58,7 @@ export function WorkflowAuthorityPage({
   showWorkspace = true,
 }: WorkflowAuthorityPageProps) {
   const profile = workflowProfiles[workflowId];
-  const { user } = useAuth();
+  const { user, isConfigured } = useAuth();
   const image = workflowImages[workflowId];
   const hasWorkspace = showWorkspace && intakeFields && intakeFields.length > 0;
 
@@ -66,21 +66,46 @@ export function WorkflowAuthorityPage({
   const [intakeData, setIntakeData] = useState<Record<string, string>>({});
   const [objective, setObjective] = useState("");
   const [documentText, setDocumentText] = useState("");
-  const [result, setResult] = useState<null | ReturnType<
-    typeof import("@/domain/private-office-workflow").runPrivateOfficeWorkflow
-  >>(null);
+  const [result, setResult] = useState<null | {
+    matterId: string | null;
+    analysis: import("@/domain/gold-standard").MatterAnalysis;
+    draft: string;
+    draftHash: string | null;
+    stages: Array<{ stage: string; status: string; detail?: string; error?: string }>;
+    ready: boolean;
+    blocked: boolean;
+    errors: string[];
+    warnings: string[];
+  }>(null);
+  const [analyzing, setAnalyzing] = useState(false);
 
-  function runAnalysis() {
-    import("@/domain/private-office-workflow").then(({ runPrivateOfficeWorkflow }) => {
-      const res = runPrivateOfficeWorkflow({
-        workflowId,
-        documentId: "local-doc",
-        text: documentText || "Source document text placeholder for analysis.",
-        facts: intakeData,
-        objective,
-      });
-      setResult(res);
-    });
+  async function runAnalysis() {
+    setAnalyzing(true);
+    try {
+      if (user && isConfigured) {
+        const { runWorkflow } = await import("@/lib/fns/run-workflow");
+        const res = await runWorkflow({
+          workflowId,
+          documentId: "uploaded-document",
+          text: documentText || "Source document text placeholder for analysis.",
+          facts: intakeData,
+          objective,
+        });
+        setResult(res as typeof result);
+      } else {
+        const { runPrivateOfficeWorkflow } = await import("@/domain/private-office-workflow");
+        const res = runPrivateOfficeWorkflow({
+          workflowId,
+          documentId: "local-doc",
+          text: documentText || "Source document text placeholder for analysis.",
+          facts: intakeData,
+          objective,
+        });
+        setResult({ matterId: null, ...res } as typeof result);
+      }
+    } finally {
+      setAnalyzing(false);
+    }
   }
 
   const pricingExample = [
@@ -203,13 +228,19 @@ export function WorkflowAuthorityPage({
                 />
               </div>
 
-              <button onClick={runAnalysis} className="btn-primary">
-                Analyze & Generate Draft <ArrowRight size={16} />
+              <button onClick={runAnalysis} className="btn-primary" disabled={analyzing}>
+                {analyzing ? "Analyzing…" : "Analyze & Generate Draft"} <ArrowRight size={16} />
               </button>
             </div>
 
             {/* Results */}
             {result && (
+              <>
+                {result.matterId && (
+                  <div className="alert alert-success">
+                    <strong>Matter saved.</strong> Your analysis, evidence, and draft are persisted to your Private Office. Matter ID: <span className="font-mono text-xs">{result.matterId}</span>
+                  </div>
+                )}
               <div className="mt-8 space-y-5">
                 {/* Pipeline stages */}
                 <div className="card p-6">
@@ -361,6 +392,7 @@ export function WorkflowAuthorityPage({
                   <strong>Important:</strong> {profile.disclaimer}
                 </div>
               </div>
+              </>
             )}
           </div>
         </section>
