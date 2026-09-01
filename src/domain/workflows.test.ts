@@ -66,13 +66,14 @@ describe("workflow registry", () => {
     }
   });
 
-  it("exposes a workflow list with all five workflows", () => {
-    expect(workflowList).toHaveLength(5);
+  it("exposes a workflow list with all six workflows", () => {
+    expect(workflowList).toHaveLength(6);
     expect(workflowList.map((w) => w.id)).toContain("contractor-dispute");
     expect(workflowList.map((w) => w.id)).toContain("property-insurance-claim");
     expect(workflowList.map((w) => w.id)).toContain("bank-wire-dispute");
     expect(workflowList.map((w) => w.id)).toContain("trust-beneficiary-notice");
     expect(workflowList.map((w) => w.id)).toContain("security-deposit-dispute");
+    expect(workflowList.map((w) => w.id)).toContain("debt-validation-dispute");
   });
 
   it("workflow IDs are string literals", () => {
@@ -81,11 +82,13 @@ describe("workflow registry", () => {
     const bankId: WorkflowId = "bank-wire-dispute";
     const trustId: WorkflowId = "trust-beneficiary-notice";
     const depositId: WorkflowId = "security-deposit-dispute";
+    const debtId: WorkflowId = "debt-validation-dispute";
     expect(workflows[contractorId]).toBeDefined();
     expect(workflows[insuranceId]).toBeDefined();
     expect(workflows[bankId]).toBeDefined();
     expect(workflows[trustId]).toBeDefined();
     expect(workflows[depositId]).toBeDefined();
+    expect(workflows[debtId]).toBeDefined();
   });
 
   it("property-insurance-claim has a description mentioning insurance claims", () => {
